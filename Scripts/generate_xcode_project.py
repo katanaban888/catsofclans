@@ -39,9 +39,21 @@ def collect(dirpath: str) -> list:
     return sorted(out)
 
 
+def collect_asset_catalogs(dirpath: str) -> list:
+    """Находит *.xcassets внутри каталога приложения."""
+    out = []
+    for base, dirs, _ in os.walk(dirpath):
+        for d in sorted(dirs):
+            if d.endswith(".xcassets"):
+                full = os.path.join(base, d)
+                out.append(os.path.relpath(full, dirpath).replace(os.sep, "/"))
+    return sorted(out)
+
+
 def main() -> None:
     kit_files = collect(KIT_DIR)
     app_files = [f for f in collect(APP_DIR)]
+    asset_cats = collect_asset_catalogs(APP_DIR)
     if not kit_files or not app_files:
         print("Ой: не нашли swift-файки", file=sys.stderr)
         sys.exit(1)
@@ -57,6 +69,7 @@ def main() -> None:
     id_project = pid("project:catclans")
     id_src_phase = pid("phase:sources")
     id_fw_phase = pid("phase:frameworks")
+    id_res_phase = pid("phase:resources")
     id_proj_cfg_list = pid("cfglist:project")
     id_tgt_cfg_list = pid("cfglist:target")
     id_proj_dbg = pid("cfg:project:debug")
@@ -75,6 +88,9 @@ def main() -> None:
         build_files.append((f, build_id("kit/" + f), file_id("kit/" + f), "kit/" + f))
     for f in app_files:
         build_files.append((f, build_id("app/" + f), file_id("app/" + f), "app/" + f))
+    asset_entries = []
+    for a in asset_cats:
+        asset_entries.append((a, build_id("asset/" + a), file_id("asset/" + a)))
     plist_file_id = pid("file:" + PLIST)
 
     L = []
@@ -91,6 +107,8 @@ def main() -> None:
     L.append("/* Begin PBXBuildFile section */")
     for f, bid, fid, key in build_files:
         L.append(f"\t\t{bid} /* {f} in Sources */ = {{isa = PBXBuildFile; fileRef = {fid} /* {f} */; }};")
+    for a, bid, fid in asset_entries:
+        L.append(f"\t\t{bid} /* {a} in Resources */ = {{isa = PBXBuildFile; fileRef = {fid} /* {a} */; }};")
     L.append("/* End PBXBuildFile section */")
     L.append("")
 
@@ -98,6 +116,8 @@ def main() -> None:
     L.append("/* Begin PBXFileReference section */")
     for f, bid, fid, key in build_files:
         L.append(f"\t\t{fid} /* {f} */ = {{isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = {f}; sourceTree = \"<group>\"; }};")
+    for a, bid, fid in asset_entries:
+        L.append(f"\t\t{fid} /* {a} */ = {{isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = {a}; sourceTree = \"<group>\"; }};")
     L.append(f"\t\t{plist_file_id} /* Info.plist */ = {{isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = \"<group>\"; }};")
     L.append(f"\t\t{id_app_ref} /* {APP_NAME}.app */ = {{isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = {APP_NAME}.app; sourceTree = BUILT_PRODUCTS_DIR; }};")
     L.append("/* End PBXFileReference section */")
@@ -113,6 +133,20 @@ def main() -> None:
     L.append("\t\t\trunOnlyForDeploymentPostprocessing = 0;")
     L.append("\t\t};")
     L.append("/* End PBXFrameworksBuildPhase section */")
+    L.append("")
+
+    # ── PBXResourcesBuildPhase ──
+    L.append("/* Begin PBXResourcesBuildPhase section */")
+    L.append(f"\t\t{id_res_phase} /* Resources */ = {{")
+    L.append("\t\t\tisa = PBXResourcesBuildPhase;")
+    L.append("\t\t\tbuildActionMask = 2147483647;")
+    L.append("\t\t\tfiles = (")
+    for a, bid, fid in asset_entries:
+        L.append(f"\t\t\t\t{bid} /* {a} in Resources */,")
+    L.append("\t\t\t);")
+    L.append("\t\t\trunOnlyForDeploymentPostprocessing = 0;")
+    L.append("\t\t};")
+    L.append("/* End PBXResourcesBuildPhase section */")
     L.append("")
 
     # ── PBXGroup ──
@@ -139,9 +173,9 @@ def main() -> None:
     L.append("\t\t\tsourceTree = \"<group>\";")
     L.append("\t\t};")
 
-    app_children = "\n".join(
-        f"\t\t\t\t{file_id('app/' + f)} /* {f} */," for f in app_files
-    )
+    app_children_lines = [f"\t\t\t\t{file_id('app/' + f)} /* {f} */," for f in app_files]
+    app_children_lines += [f"\t\t\t\t{fid} /* {a} */," for a, bid, fid in asset_entries]
+    app_children = "\n".join(app_children_lines)
     L.append(f"\t\t{id_app_group} /* {APP_NAME}App */ = {{")
     L.append("\t\t\tisa = PBXGroup;")
     L.append("\t\t\tchildren = (")
@@ -180,6 +214,7 @@ def main() -> None:
     L.append("\t\t\tbuildPhases = (")
     L.append(f"\t\t\t\t{id_src_phase} /* Sources */,")
     L.append(f"\t\t\t\t{id_fw_phase} /* Frameworks */,")
+    L.append(f"\t\t\t\t{id_res_phase} /* Resources */,")
     L.append("\t\t\t);")
     L.append("\t\t\tbuildRules = (")
     L.append("\t\t\t);")

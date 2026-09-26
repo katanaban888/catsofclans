@@ -17,16 +17,22 @@
 		0B938DD202E3234B283A266C /* State/GameState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8622CA10CEC1FD3B9B9201E /* State/GameState.swift */; };
 		F06FC4346D664653D79316AF /* Support/RNG.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75517F0E978B565BD51FF1C5 /* Support/RNG.swift */; };
 		8A53E440A97073B9148A563D /* Support/V2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C83233794D681D50C72CF19 /* Support/V2.swift */; };
+		FDBCE3618881CFA6CC2F4CB5 /* Assets.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF373B2FBDBA7E21C9456FB8 /* Assets.swift */; };
 		B85CE410A61D0BA5FA34E6B3 /* CatClansApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07ED735C7C0BBF6F0CF10BA1 /* CatClansApp.swift */; };
 		C4AEA80B734F61E130B50001 /* GameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 057554AD7A2279E6F7F28B5E /* GameStore.swift */; };
 		7B13E4A9B3B57D891FD4419A /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF5DA350BB561C7617A61AB4 /* Theme.swift */; };
-		DC767DF9A9F7973853A340A2 /* Views/ArmyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B4489A4059FFA90F8FDEAD6 /* Views/ArmyView.swift */; };
+		E6D3AEEAD22CF0DD2E5D2959 /* Views/ArmyPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5A5D3B633EBE9E9398C683 /* Views/ArmyPanel.swift */; };
 		875D522EFC6FCE66A11D92CE /* Views/AttackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46518A850C74D699E332B70A /* Views/AttackView.swift */; };
 		D15B344F31B394DB3664E603 /* Views/BattleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C697445FE2311FA1340E6E1 /* Views/BattleView.swift */; };
 		D56CC114010F0335707CFF04 /* Views/BuildSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAAB9F613D9D0CBE804D546B /* Views/BuildSheet.swift */; };
-		398630BB88DC8166A8623F1E /* Views/BuildingDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = F85718B0C9191E0995AD4FD6 /* Views/BuildingDetail.swift */; };
+		01C7C0015A37F39010E79AAE /* Views/BuildingActionPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FEC57C7DB4441C7D44AB31E /* Views/BuildingActionPanel.swift */; };
+		23E8DD6908FFBA7A238580AC /* Views/GameHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FEDB910C5E6F3C3C5B5E94D /* Views/GameHUD.swift */; };
+		68B5803B65C353741970E1B6 /* Views/ResourceHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCB0FE46BCE135A8B5C2C6AA /* Views/ResourceHUD.swift */; };
 		5C582C3EBD104E763F70C71A /* Views/ResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A611BD5EE83B48574287BFD /* Views/ResultView.swift */; };
+		F4776B9650DF4D06E4B44158 /* Views/SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA2A82D69F24F78E5AB5340F /* Views/SettingsView.swift */; };
+		64B111259950DE022FB34A13 /* Views/VillageMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = C261F890D1ACF9C6ACEB429F /* Views/VillageMap.swift */; };
 		4D05243BC5777190FF1C05C8 /* Views/VillageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE854989F242745CBE2AF48D /* Views/VillageView.swift */; };
+		04DDB7964F779966617D4790 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B9C04B235F3960D407DED90F /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,16 +46,22 @@
 		D8622CA10CEC1FD3B9B9201E /* State/GameState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = State/GameState.swift; sourceTree = "<group>"; };
 		75517F0E978B565BD51FF1C5 /* Support/RNG.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Support/RNG.swift; sourceTree = "<group>"; };
 		1C83233794D681D50C72CF19 /* Support/V2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Support/V2.swift; sourceTree = "<group>"; };
+		FF373B2FBDBA7E21C9456FB8 /* Assets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Assets.swift; sourceTree = "<group>"; };
 		07ED735C7C0BBF6F0CF10BA1 /* CatClansApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatClansApp.swift; sourceTree = "<group>"; };
 		057554AD7A2279E6F7F28B5E /* GameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStore.swift; sourceTree = "<group>"; };
 		BF5DA350BB561C7617A61AB4 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
-		7B4489A4059FFA90F8FDEAD6 /* Views/ArmyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/ArmyView.swift; sourceTree = "<group>"; };
+		AB5A5D3B633EBE9E9398C683 /* Views/ArmyPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/ArmyPanel.swift; sourceTree = "<group>"; };
 		46518A850C74D699E332B70A /* Views/AttackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/AttackView.swift; sourceTree = "<group>"; };
 		1C697445FE2311FA1340E6E1 /* Views/BattleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/BattleView.swift; sourceTree = "<group>"; };
 		DAAB9F613D9D0CBE804D546B /* Views/BuildSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/BuildSheet.swift; sourceTree = "<group>"; };
-		F85718B0C9191E0995AD4FD6 /* Views/BuildingDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/BuildingDetail.swift; sourceTree = "<group>"; };
+		3FEC57C7DB4441C7D44AB31E /* Views/BuildingActionPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/BuildingActionPanel.swift; sourceTree = "<group>"; };
+		5FEDB910C5E6F3C3C5B5E94D /* Views/GameHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/GameHUD.swift; sourceTree = "<group>"; };
+		FCB0FE46BCE135A8B5C2C6AA /* Views/ResourceHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/ResourceHUD.swift; sourceTree = "<group>"; };
 		4A611BD5EE83B48574287BFD /* Views/ResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/ResultView.swift; sourceTree = "<group>"; };
+		BA2A82D69F24F78E5AB5340F /* Views/SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/SettingsView.swift; sourceTree = "<group>"; };
+		C261F890D1ACF9C6ACEB429F /* Views/VillageMap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/VillageMap.swift; sourceTree = "<group>"; };
 		FE854989F242745CBE2AF48D /* Views/VillageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/VillageView.swift; sourceTree = "<group>"; };
+		B9C04B235F3960D407DED90F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B53E282FB3F4D0A6121F807B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A0DFE197EF9F16D3C6BD7871 /* CatClans.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CatClans.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -63,6 +75,17 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C02F1309AF4906C92F1EAD44 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				04DDB7964F779966617D4790 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXGroup section */
 		F7D860F4F0BF46768E6571DC = {
@@ -94,16 +117,22 @@
 		8E36AD4EA13B164605912D26 /* CatClansApp */ = {
 			isa = PBXGroup;
 			children = (
+				FF373B2FBDBA7E21C9456FB8 /* Assets.swift */,
 				07ED735C7C0BBF6F0CF10BA1 /* CatClansApp.swift */,
 				057554AD7A2279E6F7F28B5E /* GameStore.swift */,
 				BF5DA350BB561C7617A61AB4 /* Theme.swift */,
-				7B4489A4059FFA90F8FDEAD6 /* Views/ArmyView.swift */,
+				AB5A5D3B633EBE9E9398C683 /* Views/ArmyPanel.swift */,
 				46518A850C74D699E332B70A /* Views/AttackView.swift */,
 				1C697445FE2311FA1340E6E1 /* Views/BattleView.swift */,
 				DAAB9F613D9D0CBE804D546B /* Views/BuildSheet.swift */,
-				F85718B0C9191E0995AD4FD6 /* Views/BuildingDetail.swift */,
+				3FEC57C7DB4441C7D44AB31E /* Views/BuildingActionPanel.swift */,
+				5FEDB910C5E6F3C3C5B5E94D /* Views/GameHUD.swift */,
+				FCB0FE46BCE135A8B5C2C6AA /* Views/ResourceHUD.swift */,
 				4A611BD5EE83B48574287BFD /* Views/ResultView.swift */,
+				BA2A82D69F24F78E5AB5340F /* Views/SettingsView.swift */,
+				C261F890D1ACF9C6ACEB429F /* Views/VillageMap.swift */,
 				FE854989F242745CBE2AF48D /* Views/VillageView.swift */,
+				B9C04B235F3960D407DED90F /* Assets.xcassets */,
 				B53E282FB3F4D0A6121F807B /* Info.plist */,
 			);
 			path = CatClansApp;
@@ -134,6 +163,7 @@
 			buildPhases = (
 				1CDF2F71A52B082132B04DFF /* Sources */,
 				CF5BDB0BEAFE176F9629192A /* Frameworks */,
+				C02F1309AF4906C92F1EAD44 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -193,15 +223,20 @@
 				0B938DD202E3234B283A266C /* State/GameState.swift in Sources */,
 				F06FC4346D664653D79316AF /* Support/RNG.swift in Sources */,
 				8A53E440A97073B9148A563D /* Support/V2.swift in Sources */,
+				FDBCE3618881CFA6CC2F4CB5 /* Assets.swift in Sources */,
 				B85CE410A61D0BA5FA34E6B3 /* CatClansApp.swift in Sources */,
 				C4AEA80B734F61E130B50001 /* GameStore.swift in Sources */,
 				7B13E4A9B3B57D891FD4419A /* Theme.swift in Sources */,
-				DC767DF9A9F7973853A340A2 /* Views/ArmyView.swift in Sources */,
+				E6D3AEEAD22CF0DD2E5D2959 /* Views/ArmyPanel.swift in Sources */,
 				875D522EFC6FCE66A11D92CE /* Views/AttackView.swift in Sources */,
 				D15B344F31B394DB3664E603 /* Views/BattleView.swift in Sources */,
 				D56CC114010F0335707CFF04 /* Views/BuildSheet.swift in Sources */,
-				398630BB88DC8166A8623F1E /* Views/BuildingDetail.swift in Sources */,
+				01C7C0015A37F39010E79AAE /* Views/BuildingActionPanel.swift in Sources */,
+				23E8DD6908FFBA7A238580AC /* Views/GameHUD.swift in Sources */,
+				68B5803B65C353741970E1B6 /* Views/ResourceHUD.swift in Sources */,
 				5C582C3EBD104E763F70C71A /* Views/ResultView.swift in Sources */,
+				F4776B9650DF4D06E4B44158 /* Views/SettingsView.swift in Sources */,
+				64B111259950DE022FB34A13 /* Views/VillageMap.swift in Sources */,
 				4D05243BC5777190FF1C05C8 /* Views/VillageView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

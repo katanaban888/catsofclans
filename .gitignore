@@ -13,3 +13,6 @@ Package.resolved
 
 # macOS
 .DS_Store
+
+# Сырые сгенерированные арты (промежуточные, обрабатываются в Assets.xcassets)
+raw/

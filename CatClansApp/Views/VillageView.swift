@@ -6,78 +6,84 @@ struct VillageView: View {
     @EnvironmentObject var store: GameStore
 
     var body: some View {
-        GeometryReader { geo in
-            let cw = geo.size.width / CGFloat(GameState.gridColumns)
-            let ch = geo.size.height / CGFloat(GameState.gridRows)
-            ZStack(alignment: .topLeading) {
-                // Газон.
-                ForEach(0..<GameState.slotCount, id: \.self) { slot in
-                    let r = GameState.slotRow(slot)
-                    let c = GameState.slotColumn(slot)
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill((r + c) % 2 == 0 ? Color.ccTileA : Color.ccTileB)
-                        .frame(width: cw - 4, height: ch - 4)
-                        .position(x: (CGFloat(c) + 0.5) * cw, y: (CGFloat(r) + 0.5) * ch)
-                }
-                // Здания.
-                ForEach(store.state.buildings) { b in
-                    let c = GameState.slotColumn(b.slot)
-                    let r = GameState.slotRow(b.slot)
-                    BuildingTile(
-                        building: b,
-                        homeHP: store.state.homeHP,
-                        homeMax: store.state.homeMaxHP
-                    )
-                    .frame(width: cw - 8, height: ch - 8)
-                    .position(x: (CGFloat(c) + 0.5) * cw, y: (CGFloat(r) + 0.5) * ch)
-                    .onTapGesture {
-                        store.selectedBuilding = b
-                    }
-                }
+        ZStack {
+            // Фон на весь экран (за пределами скролла карты).
+            LinearGradient(
+                colors: [Color.ccGrassB, Color.ccGrassA],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                GameHUD()
+                VillageMap()
+                BottomActionBar()
             }
         }
-        .padding(8)
     }
 }
 
-struct BuildingTile: View {
-    let building: PlacedBuilding
-    let homeHP: Double
-    let homeMax: Int
+// MARK: - Нижняя панель действий
+
+struct BottomActionBar: View {
+    @EnvironmentObject var store: GameStore
 
     var body: some View {
-        let def = BuildingTable.def(building.type)
-        let homeDamaged = building.type == .home && homeHP < Double(homeMax)
-        VStack(spacing: 2) {
-            Text(def.emoji)
-                .font(.system(size: 24))
-            Text(def.ruName)
-                .font(.system(size: 8))
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
-                .foregroundColor(.white)
-            Text("ур.\(building.level)")
-                .font(.system(size: 8, weight: .bold))
-                .padding(.horizontal, 4)
-                .padding(.vertical, 1)
-                .background(Capsule().fill(Color.black.opacity(0.45)))
-                .foregroundColor(.white)
-            if homeDamaged {
-                HPBar(frac: homeHP / Double(max(1, homeMax)), width: 42)
+        HStack(spacing: 20) {
+            GameRoundButton(
+                title: "Магазин",
+                systemIcon: "hammer.fill",
+                artAsset: "btn_shop",
+                color: .ccAccent,
+                size: 52
+            ) {
+                store.showBuild = true
+            }
+            GameRoundButton(
+                title: "Армия",
+                systemIcon: "pawprint.fill",
+                artAsset: "btn_army",
+                color: .ccGood,
+                size: 52
+            ) {
+                store.showArmy = true
+            }
+            attackButton
+            GameRoundButton(
+                title: "Настройки",
+                systemIcon: "gearshape.fill",
+                artAsset: "btn_settings",
+                color: .gray,
+                size: 44
+            ) {
+                store.showSettings = true
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 16)
+        .padding(.top, 6)
+        .padding(.bottom, 6)
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(building.type == .home ? Color.orange.opacity(0.16) : Color.white.opacity(0.05))
+            LinearGradient(
+                colors: [Color.black.opacity(0.0), Color.black.opacity(0.55)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea(edges: .bottom)
         )
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(
-                    building.type == .home ? Color.orange.opacity(0.6) : Color.white.opacity(0.15),
-                    lineWidth: 1
-                )
-        )
+    }
+
+    private var attackButton: some View {
+        let ready = store.state.attackReady
+        return GameRoundButton(
+            title: ready ? "Атака" : "Отдых",
+            systemIcon: "flame.fill",
+            artAsset: "btn_attack",
+            color: .ccBad,
+            size: 60
+        ) {
+            store.showAttack = true
+        }
     }
 }
 
@@ -85,32 +91,29 @@ struct BuildingTile: View {
 
 struct OfflineSheet: View {
     @EnvironmentObject var store: GameStore
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: 16) {
+        ZStack {
+            Color.black.opacity(0.6).ignoresSafeArea()
+            VStack(spacing: 14) {
                 Text("😴")
-                    .font(.system(size: 60))
+                    .font(.system(size: 54))
                 Text("Пока вас не было (\(fmtDuration(store.offline?.elapsed ?? 0)))")
                     .font(.headline)
+                    .foregroundColor(.white)
                 Text(store.offline?.note ?? "")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.white.opacity(0.85))
                     .multilineTextAlignment(.center)
-                Button(action: { dismiss() }) {
-                    Text("Мурр!")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 44)
-                        .padding(.vertical, 10)
-                        .background(Capsule().fill(Color.ccAccent))
+                    .padding(.horizontal, 24)
+                GameCapsuleButton(title: "Мурр!", color: .ccAccent) {
+                    store.offline = nil
                 }
-                .padding(.top, 8)
             }
-            .padding()
-            .navigationTitle("Возвращение")
-            .navigationBarTitleDisplayMode(.inline)
+            .padding(22)
+            .frame(maxWidth: 460)
+            .background(WoodPanel())
+            .padding(24)
         }
     }
 }
