@@ -82,6 +82,8 @@ final class GameStore: ObservableObject {
     @Published var battleTitle: String = ""
     @Published var result: ResultPayload?
     @Published var toast: String?
+    @Published private(set) var deploymentUnits: [UnitID] = []
+    @Published private(set) var awaitingDeployment = false
     @Published var speed: Int = 1
     @Published var paused: Bool = false
     @Published var offline: OfflineSummary?
@@ -101,6 +103,7 @@ final class GameStore: ObservableObject {
     init() {
         if let loaded = SaveSystem.load() {
             state = loaded
+            state.migrateVillageGrid()
             let now = Date().timeIntervalSince1970
             if let s = state.applyOffline(now: now) {
                 offline = s
@@ -164,6 +167,8 @@ final class GameStore: ObservableObject {
 
     private func publishBattle() {
         guard let s = sim else { return }
+        deploymentUnits = s.deployQueue.map { $0.id }
+        awaitingDeployment = s.awaitingDeployment
         let unitSnaps = s.units.map { u in
             UnitSnap(
                 id: u.id,
@@ -235,7 +240,7 @@ final class GameStore: ObservableObject {
         }
         let seed = state.seed &+ UInt64(Int(state.gameTime))
         let enemy = EnemyGenerator.base(difficulty: difficulty, seed: seed)
-        guard let s = BattleSim(state: state, enemy: enemy, mode: .attack, seed: seed) else {
+        guard let s = BattleSim(state: state, enemy: enemy, seed: seed, manualDeployment: true) else {
             showToast("Армия пуста!")
             return
         }
@@ -272,9 +277,23 @@ final class GameStore: ObservableObject {
             state.applyDefenseResult(r)
         }
         sim = nil
+        deploymentUnits = []
+        awaitingDeployment = false
         battle = nil
         save()
         result = ResultPayload(result: r, mode: s.mode, enemyName: s.enemyName)
+    }
+
+    func deploy(at pos: V2) {
+        guard !paused else { return }
+        sim?.deployNext(at: pos)
+        publishBattle()
+    }
+
+    func autoDeploy() {
+        sim?.deployRemaining()
+        paused = false
+        publishBattle()
     }
 
     func surrender() {

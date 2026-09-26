@@ -22,8 +22,8 @@ struct ArmyPanel: View {
                     .padding(.bottom, 6)
                 }
             }
-            .padding(.vertical, 12)
-            .frame(maxWidth: 860)
+            .padding(.vertical, 8)
+            .frame(maxWidth: 540)
             .background(WoodPanel(corner: 20))
             .padding(.horizontal, 20)
         }
@@ -105,7 +105,7 @@ struct ArmyCard: View {
 
         VStack(spacing: 6) {
             ZStack(alignment: .topTrailing) {
-                UnitSpriteView(unit: unit, size: 64)
+                UnitSpriteView(unit: unit, size: 48)
                     .opacity(locked ? 0.4 : 1)
                 if owned + queueCount > 0 {
                     Text("×\(owned + queueCount)")
@@ -139,8 +139,8 @@ struct ArmyCard: View {
                 }
             }
         }
-        .padding(10)
-        .frame(width: 140)
+        .padding(8)
+        .frame(width: 128)
         .background(
             RoundedRectangle(cornerRadius: 14)
                 .fill(Color.white.opacity(0.06))

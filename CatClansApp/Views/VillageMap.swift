@@ -19,8 +19,8 @@ struct VillageMap: View {
     @State private var baseZoom: CGFloat = 1.0
 
     // Дизайн-размеры карты.
-    private let cell: CGFloat = 104
-    private let margin: CGFloat = 110
+    private let cell: CGFloat = 88
+    private let margin: CGFloat = 76
 
     private var gridW: CGFloat { cell * CGFloat(GameState.gridColumns) }
     private var gridH: CGFloat { cell * CGFloat(GameState.gridRows) }
@@ -29,21 +29,25 @@ struct VillageMap: View {
 
     var body: some View {
         GeometryReader { geo in
-            ScrollView([.horizontal, .vertical], showsIndicators: false) {
-                mapContent
-                    .frame(width: contentW, height: contentH)
-                    .scaleEffect(zoom, anchor: .topLeading)
-                    .frame(width: contentW * zoom, height: contentH * zoom, alignment: .topLeading)
+            ScrollViewReader { proxy in
+                ScrollView([.horizontal, .vertical], showsIndicators: false) {
+                    mapContent
+                        .frame(width: contentW, height: contentH)
+                        .scaleEffect(zoom, anchor: .topLeading)
+                        .frame(width: contentW * zoom, height: contentH * zoom, alignment: .topLeading)
+                        .id("village")
+                }
+                .frame(width: geo.size.width, height: geo.size.height)
+                .simultaneousGesture(magnify)
+                .onAppear { proxy.scrollTo("village", anchor: .center) }
             }
-            .frame(width: geo.size.width, height: geo.size.height)
-            .gesture(magnify)
         }
     }
 
     private var magnify: some Gesture {
         MagnificationGesture()
             .onChanged { v in
-                zoom = min(1.6, max(0.6, baseZoom * v))
+                zoom = min(1.6, max(0.4, baseZoom * v))
             }
             .onEnded { _ in
                 baseZoom = zoom
@@ -101,7 +105,7 @@ struct VillageMap: View {
         let kinds: [(String, String)] = [
             ("d_tree", "🌳"), ("d_bush", "🌿"), ("d_rock", "🪨"), ("d_flower", "🌸"),
         ]
-        for i in 0..<28 {
+        for i in 0..<48 {
             let k = kinds[rng.nextInt(kinds.count)]
             let side = rng.nextInt(4)
             var x: CGFloat = 0
@@ -231,7 +235,7 @@ private struct MapBuilding: View {
     var body: some View {
         let def = BuildingTable.def(building.type)
         let isHome = building.type == .home
-        let size: CGFloat = isHome ? 92 : 78
+        let size: CGFloat = isHome ? 68 : 60
         VStack(spacing: 2) {
             BuildingSpriteView(type: building.type, level: building.level, size: size)
                 .scaleEffect(isHome ? 1.12 : 1.0)
@@ -245,7 +249,7 @@ private struct MapBuilding: View {
                 HPBar(frac: homeHP / Double(max(1, homeMax)), width: 52)
             }
         }
-        .frame(width: 100, height: 116)
+        .frame(width: 82, height: 86)
         .contentShape(Rectangle())
         .accessibilityLabel("\(def.ruName), уровень \(building.level)")
     }

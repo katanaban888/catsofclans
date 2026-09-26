@@ -12,10 +12,15 @@ struct ResultView: View {
         ZStack {
             Color.black.opacity(0.7).ignoresSafeArea()
             VStack(spacing: 14) {
-                Text(bannerText)
+                HStack(spacing: 8) {
+                    if r.victory {
+                        SpriteView(asset: "fx_win", fallbackEmoji: "🏆", size: 46)
+                    }
+                    Text(bannerText)
                     .font(.system(size: 34, weight: .heavy))
                     .foregroundColor(r.victory ? .ccGood : .ccBad)
                     .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 2)
+                }
                 Text(payload.enemyName)
                     .font(.subheadline)
                     .foregroundColor(.white.opacity(0.8))

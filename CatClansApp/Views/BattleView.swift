@@ -20,11 +20,14 @@ struct BattleScreen: View {
                     battleTopHUD(b)
                     HStack(spacing: 0) {
                         EventLog(events: b.events)
-                            .frame(width: 190)
+                            .frame(width: 128)
                         ArenaView(battle: b)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                         BattleControls()
-                            .frame(width: 110)
+                            .frame(width: 100)
+                    }
+                    if store.battleMode == .attack {
+                        DeploymentTray()
                     }
                 }
             }
@@ -54,6 +57,8 @@ struct BattleScreen: View {
 // MARK: - Арена
 
 struct ArenaView: View {
+    @EnvironmentObject var store: GameStore
+    @State private var ghost: CGPoint?
     let battle: BattleSnapshot
 
     var body: some View {
@@ -70,6 +75,19 @@ struct ArenaView: View {
                     .frame(width: side, height: side)
                     .position(x: geo.size.width / 2, y: geo.size.height / 2)
 
+                if !store.deploymentUnits.isEmpty {
+                    Rectangle().fill(Color.ccGood.opacity(0.15))
+                        .frame(width: side, height: side / 2)
+                        .position(x: ox + side / 2, y: oy + side * 0.75)
+                        .allowsHitTesting(false)
+                }
+                if let point = ghost, let unit = store.deploymentUnits.first {
+                    UnitSpriteView(unit: unit, size: 32)
+                        .opacity(0.65)
+                        .position(point)
+                        .allowsHitTesting(false)
+                }
+
                 ForEach(battle.structures) { st in
                     BattleStructureView(snap: st, tile: s)
                         .position(x: ox + st.x * s, y: oy + st.y * s)
@@ -79,8 +97,69 @@ struct ArenaView: View {
                         .position(x: ox + u.x * s, y: oy + u.y * s)
                 }
             }
+            .frame(width: geo.size.width, height: geo.size.height)
+            .contentShape(Rectangle())
+            .gesture(DragGesture(minimumDistance: 0)
+                .onChanged { value in
+                    guard !store.paused, !store.deploymentUnits.isEmpty else { return }
+                    ghost = CGPoint(x: min(ox + side - s / 2, max(ox + s / 2, value.location.x)),
+                                    y: min(oy + side - s / 2, max(oy + side / 2, value.location.y)))
+                }
+                .onEnded { value in
+                    ghost = nil
+                    guard side > 0,
+                          value.location.x >= ox, value.location.x <= ox + side,
+                          value.location.y >= oy + side / 2, value.location.y <= oy + side else { return }
+                    store.deploy(at: V2(Double((value.location.x - ox) / s),
+                                        Double((value.location.y - oy) / s)))
+                })
+            .accessibilityLabel("Поле боя. Высадка котов в нижней половине")
+            .accessibilityAction(named: Text("Высадить следующего кота в центре")) {
+                store.deploy(at: V2(20, 35))
+            }
         }
         .padding(8)
+    }
+}
+
+private struct DeploymentTray: View {
+    @EnvironmentObject var store: GameStore
+
+    var body: some View {
+        HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Осталось: \(store.deploymentUnits.count)").font(.caption.bold())
+                Text(store.awaitingDeployment ? "Тапните по нижней половине — начать" : "Высаживайте подкрепление тапом")
+                    .font(.system(size: 10))
+            }
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(UnitTable.playerUnits, id: \.self) { unit in
+                        let count = store.deploymentUnits.filter { $0 == unit }.count
+                        if count > 0 {
+                            HStack(spacing: 2) {
+                                UnitSpriteView(unit: unit, size: 28)
+                                Text("×\(count)").font(.caption.bold())
+                            }
+                            .padding(3)
+                            .background(RoundedRectangle(cornerRadius: 6)
+                                .fill(store.deploymentUnits.first == unit ? Color.ccGood.opacity(0.35) : Color.clear))
+                            .accessibilityLabel("\(unit.ruName), осталось \(count)")
+                        }
+                    }
+                }
+            }
+            Button("Авто-высадка") { store.autoDeploy() }
+                .font(.caption.bold())
+                .padding(10)
+                .background(Capsule().fill(Color.ccGood.opacity(0.6)))
+                .disabled(store.deploymentUnits.isEmpty)
+                .accessibilityLabel("Высадить всех оставшихся котов")
+        }
+        .foregroundColor(.white)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 4)
+        .background(Color.black.opacity(0.5))
     }
 }
 
@@ -95,7 +174,7 @@ struct BattleStructureView: View {
                 .saturation(snap.destroyed ? 0 : 1)
                 .overlay(
                     snap.destroyed
-                        ? Text("💥").font(.system(size: tile * 1.4))
+                        ? SpriteView(asset: "fx_boom", fallbackEmoji: "💥", size: tile * 1.4)
                         : nil
                 )
             if !snap.destroyed {
