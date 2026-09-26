@@ -42,8 +42,8 @@ public final class BattleSim {
 
     private let enemyLoot: ResourceAmounts
     private let enemyXP: Int
-    private let totalEnemyStructures: Int
-    private let totalEnemyValue: Double
+    private var totalEnemyStructures: Int = 0
+    private var totalEnemyValue: Double = 0
     private var destroyedValue: Double = 0
     private var destroyedEnemyStructures = 0
     private var nextUnitID = 1
@@ -233,6 +233,7 @@ public final class BattleSim {
         nextUnitID += 1
     }
 
+    @discardableResult
     private func addStructure(
         type: BuildingType,
         level: Int,
