@@ -121,7 +121,7 @@ struct WoodPanel: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: corner)
-                    .stroke(Color.black.opacity(0.45), lineWidth: 2)
+                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
             )
     }
 }
@@ -186,14 +186,13 @@ struct GameCapsuleButton: View {
                 Text(title).font(.subheadline.bold())
             }
             .foregroundColor(.white)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 9)
+            .padding(.horizontal, 12)
+            .frame(minHeight: 44)
             .background(
                 Capsule()
                     .fill(enabled ? color : Color.gray.opacity(0.5))
                     .overlay(Capsule().stroke(Color.black.opacity(0.4), lineWidth: 1.5))
             )
-            .shadow(color: .black.opacity(enabled ? 0.35 : 0), radius: 2, x: 0, y: 2)
         }
         .buttonStyle(.plain)
         .disabled(!enabled)
@@ -206,7 +205,7 @@ struct PanelTitle: View {
     let text: String
     var body: some View {
         Text(text)
-            .font(.title3.bold())
+            .font(.system(size: 15, weight: .semibold))
             .foregroundColor(.white)
             .shadow(color: .black.opacity(0.5), radius: 1, x: 0, y: 1)
     }

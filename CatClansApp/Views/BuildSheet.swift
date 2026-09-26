@@ -41,6 +41,7 @@ struct BuildSheet: View {
     private var closeBtn: some View {
         Button { store.showBuild = false } label: {
             Image(systemName: "xmark.circle.fill")
+                .frame(width: 44, height: 44)
                 .font(.title2)
                 .foregroundColor(.white.opacity(0.7))
         }
@@ -59,10 +60,13 @@ struct BuildCard: View {
         let cost = BuildingTable.buildCost(type)
         let locked = store.state.homeLevel < def.requiredHomeLevel
         let affordable = store.state.resources.canAfford(cost)
-        let canBuild = !locked && affordable
+        let atLimit = BuildingTable.buildLimit(type).map { limit in
+            store.state.buildings.filter { $0.type == type }.count >= limit
+        } ?? false
+        let canBuild = !locked && affordable && !atLimit
 
         Button {
-            store.build(type)
+            store.beginPlacement(type)
         } label: {
             VStack(spacing: 6) {
                 BuildingSpriteView(type: type, level: 1, size: 48)
@@ -72,7 +76,11 @@ struct BuildCard: View {
                     .foregroundColor(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
-                if locked {
+                Text(def.flavor).font(.system(size: 10)).foregroundColor(.white.opacity(0.7))
+                    .lineLimit(3).frame(height: 38)
+                if atLimit {
+                    Text("Уже построено").font(.caption).foregroundColor(.orange)
+                } else if locked {
                     Label("Дом \(def.requiredHomeLevel) ур.", systemImage: "lock.fill")
                         .font(.system(size: 10, weight: .bold))
                         .foregroundColor(.orange)

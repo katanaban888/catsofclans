@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Обрабатывает сырые сгенерированные арты (raw/*.png) в ассет-каталог.
 
-Генератор картинок отдаёт PNG с «запечённым» шахматным фоном прозрачности
-(два серых цвета ~120 и ~181). Этот скрипт:
+Поддерживаются настоящая альфа, белый фон и старый «запечённый»
+шахматный фон (серые ~120 и ~181). Этот скрипт:
   1. заливает фон (flood-fill от краёв) в настоящую прозрачность;
   2. обрезает по альфе с небольшим отступом;
   3. уменьшает до целевого размера;
@@ -37,6 +37,9 @@ ASSET_MAP = {
     "b_cannon":      ("building_cannon.png", 384),
     "b_sniper":      ("building_sniper.png", 384),
     "b_trap":        ("building_trap.png", 384),
+    "b_yarnmill": ("building_yarnmill.png", 384),
+    "b_expedition": ("building_expedition.png", 384),
+    "b_bivouac": ("building_bivouac.png", 384),
     # Юниты игрока
     "u_kitten":  ("unit_kitten.png", 192),
     "u_warrior": ("unit_warrior.png", 192),
@@ -72,23 +75,24 @@ ASSET_MAP = {
 }
 
 
-def is_checker(px) -> bool:
-    """Пиксель «шахматного» фона: серый, каналы почти равны."""
+def is_checker(px, gray_min=90) -> bool:
+    """Пиксель фона: светлый серый/белый, включая сглаженный край."""
     r, g, b = px[0], px[1], px[2]
-    if max(r, g, b) - min(r, g, b) > 18:
-        return False
-    return 90 <= r <= 210
+    spread = max(r, g, b) - min(r, g, b)
+    if min(r, g, b) >= 210 and spread <= 40:  # cream/white matte
+        return True
+    return gray_min <= r <= 255 and spread <= 18
 
 
-def remove_checker_background(img: Image.Image) -> Image.Image:
-    rgb = img.convert("RGB")
+def remove_checker_background(img: Image.Image, gray_min=90) -> Image.Image:
+    rgb = img.convert("RGBA")
     w, h = rgb.size
     px = rgb.load()
     seen = bytearray(w * h)
     dq = deque()
 
     def seed(x, y):
-        if is_checker(px[x, y]):
+        if px[x, y][3] < 30 or is_checker(px[x, y], gray_min):
             idx = y * w + x
             if not seen[idx]:
                 seen[idx] = 1
@@ -106,7 +110,7 @@ def remove_checker_background(img: Image.Image) -> Image.Image:
         for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
             if 0 <= nx < w and 0 <= ny < h:
                 idx = ny * w + nx
-                if not seen[idx] and is_checker(px[nx, ny]):
+                if not seen[idx] and (px[nx, ny][3] < 30 or is_checker(px[nx, ny], gray_min)):
                     seen[idx] = 1
                     dq.append((nx, ny))
 
@@ -125,7 +129,14 @@ def process(name: str, raw_file: str, target: int) -> bool:
     if not os.path.exists(src):
         return False
     img = Image.open(src)
-    img = img.convert("RGBA") if name == "map_bg" else remove_checker_background(img)
+    has_alpha = "A" in img.getbands() and img.getchannel("A").getextrema()[0] < 255
+    # Seven legacy assets contained a partially erased dark checker/white matte.
+    # Repair opt-in is explicit: ordinary real-alpha art must never be flood-filled.
+    repair = "--repair-legacy" in sys.argv
+    if name == "map_bg" or (has_alpha and not repair):
+        img = img.convert("RGBA")
+    else:
+        img = remove_checker_background(img, gray_min=45 if repair else 90)
 
     alpha = img.getchannel("A")
     bbox = alpha.getbbox()
@@ -140,9 +151,12 @@ def process(name: str, raw_file: str, target: int) -> bool:
 
     # Вписать в квадрат target×target, сохраняя пропорции.
     w, h = img.size
-    scale = min(target / w, target / h)
+    scale = min((target - 12) / w, (target - 12) / h)
     nw, nh = max(1, int(w * scale)), max(1, int(h * scale))
     img = img.resize((nw, nh), Image.LANCZOS)
+    canvas = Image.new("RGBA", (target, target))
+    canvas.alpha_composite(img, ((target - nw) // 2, (target - nh) // 2))
+    img = canvas
 
     imageset = os.path.join(ASSETS, name + ".imageset")
     os.makedirs(imageset, exist_ok=True)
@@ -163,7 +177,8 @@ def process(name: str, raw_file: str, target: int) -> bool:
 
 
 def main() -> None:
-    only = set(sys.argv[1:]) if len(sys.argv) > 1 else None
+    names = [arg for arg in sys.argv[1:] if not arg.startswith("--")]
+    only = set(names) if names else None
     os.makedirs(ASSETS, exist_ok=True)
     root_contents = {"info": {"author": "xcode", "version": 1}}
     with open(os.path.join(ASSETS, "Contents.json"), "w", encoding="utf-8") as fh:

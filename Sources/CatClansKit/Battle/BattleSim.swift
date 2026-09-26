@@ -63,7 +63,8 @@ public final class BattleSim {
         mode: BattleMode,
         playerCoreHP: Int? = nil,
         seed: UInt64,
-        manualDeployment: Bool = false
+        manualDeployment: Bool = false,
+        villageBuildings: [VillageTarget] = []
     ) {
         self.mode = mode
         self.enemyName = enemy.name
@@ -181,6 +182,15 @@ public final class BattleSim {
             }
         }
 
+        if mode == .attack {
+            for target in villageBuildings {
+                let def = BuildingTable.def(target.type)
+                addStructure(type: target.type, level: target.level, pos: target.position,
+                             team: .enemy, name: def.ruName, emoji: def.emoji,
+                             isCore: false, hpOverride: nil)
+            }
+        }
+
         let enemyStructs = structures.filter { $0.team == .enemy }
         totalEnemyStructures = enemyStructs.count
         let value = enemyStructs.reduce(0.0) { $0 + Double($1.maxHP) }
@@ -241,6 +251,15 @@ public final class BattleSim {
         guard state.armySize > 0 else { return nil }
         self.init(playerUnits: state.armyStats, playerStructures: [], enemy: enemy,
                   mode: .attack, seed: seed, manualDeployment: manualDeployment)
+    }
+
+    /// Explicit opt-in for the application's cat villages, not a change to legacy battles.
+    public convenience init?(state: GameState, village: VillageAssault, seed: UInt64,
+                             manualDeployment: Bool = true) {
+        guard state.armySize > 0 else { return nil }
+        self.init(playerUnits: state.armyStats, playerStructures: [], enemy: village.enemy,
+                  mode: .attack, seed: seed, manualDeployment: manualDeployment,
+                  villageBuildings: village.buildings)
     }
 
     /// Deployment is deterministic input, never consumes RNG.

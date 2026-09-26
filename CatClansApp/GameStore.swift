@@ -88,6 +88,9 @@ final class GameStore: ObservableObject {
     @Published var paused: Bool = false
     @Published var offline: OfflineSummary?
     @Published var selectedBuilding: PlacedBuilding?
+    @Published var placingBuilding: BuildingType?
+    @Published var placementSlot: Int?
+    @Published var battleLoot = ResourceAmounts.zero
     @Published var showBuild = false
     @Published var showArmy = false
     @Published var showAttack = false
@@ -129,7 +132,7 @@ final class GameStore: ObservableObject {
         for e in events {
             switch e {
             case .trainingFinished(let u):
-                showToast("\(u.emoji) \(u.ruName) готов к бою!")
+                showToast("\(u.ruName) готов к бою!")
             default:
                 break
             }
@@ -216,6 +219,25 @@ final class GameStore: ObservableObject {
         if r.isSuccess { save() }
     }
 
+    func beginPlacement(_ type: BuildingType) {
+        placingBuilding = type
+        placementSlot = nil
+        selectedBuilding = nil
+        showBuild = false
+    }
+
+    func cancelPlacement() {
+        placingBuilding = nil
+        placementSlot = nil
+    }
+
+    func confirmPlacement() {
+        guard let type = placingBuilding, let slot = placementSlot else { return }
+        let result = state.build(type, at: slot)
+        showToast(result.message)
+        if result.isSuccess { cancelPlacement(); save() }
+    }
+
     func upgrade(slot: Int) {
         let r = state.upgrade(slot: slot)
         showToast(r.message)
@@ -238,14 +260,15 @@ final class GameStore: ObservableObject {
             showToast("Сначала обучите котов в Академии!")
             return
         }
-        let seed = state.seed &+ UInt64(Int(state.gameTime))
-        let enemy = EnemyGenerator.base(difficulty: difficulty, seed: seed)
-        guard let s = BattleSim(state: state, enemy: enemy, seed: seed, manualDeployment: true) else {
+        let seed = state.seed
+        let village = VillageAssault.make(difficulty: difficulty, seed: seed)
+        guard let s = BattleSim(state: state, village: village, seed: seed, manualDeployment: true) else {
             showToast("Армия пуста!")
             return
         }
         showAttack = false
-        beginBattle(with: s, title: "⚔️ \(s.enemyName)")
+        battleLoot = village.enemy.loot
+        beginBattle(with: s, title: "Штурм деревни · \(s.enemyName)")
     }
 
     private func startRaid() {
@@ -254,10 +277,13 @@ final class GameStore: ObservableObject {
         guard let s = BattleSim(state: state, enemy: raid, mode: .defense, seed: state.seed &+ 778) else {
             return
         }
+        battleLoot = .zero
         beginBattle(with: s, title: "🛡️ \(s.enemyName)")
     }
 
     private func beginBattle(with s: BattleSim, title: String) {
+        cancelPlacement()
+        selectedBuilding = nil
         sim = s
         battleMode = s.mode
         battleTitle = title

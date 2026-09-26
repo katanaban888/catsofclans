@@ -7,17 +7,16 @@ struct ResourceChip: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            ResourceIcon(resource: resource, size: 18)
+            ResourceIcon(resource: resource, size: 16)
             Text("\(value)")
-                .font(.system(size: 13, weight: .heavy).monospacedDigit())
+                .font(.system(size: 12, weight: .heavy).monospacedDigit())
                 .foregroundColor(.white)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(Capsule().fill(Color.black.opacity(0.45)))
-        .overlay(Capsule().stroke(Color.white.opacity(0.15), lineWidth: 1))
+        .padding(.horizontal, 3)
+        .padding(.vertical, 2)
+        .accessibilityLabel("\(resource.ruName): \(value)")
     }
 }
 

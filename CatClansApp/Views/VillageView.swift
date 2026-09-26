@@ -18,7 +18,13 @@ struct VillageView: View {
             VStack(spacing: 0) {
                 GameHUD()
                 VillageMap()
-                BottomActionBar()
+                    .overlay(alignment: .bottom) {
+                        if store.placingBuilding != nil {
+                            PlacementBar().padding(.bottom, 12)
+                        } else {
+                            BottomActionBar().padding(.bottom, 12)
+                        }
+                    }
             }
         }
     }
@@ -30,60 +36,58 @@ struct BottomActionBar: View {
     @EnvironmentObject var store: GameStore
 
     var body: some View {
-        HStack(spacing: 20) {
-            GameRoundButton(
-                title: "Магазин",
-                systemIcon: "hammer.fill",
-                artAsset: "btn_shop",
-                color: .ccAccent,
-                size: 52
-            ) {
-                store.showBuild = true
+        HStack(spacing: 4) {
+            action("Магазин", asset: "btn_shop") { store.showBuild = true }
+            action("Армия", asset: "btn_army") { store.showArmy = true }
+            action("Штурм", asset: "btn_attack") { store.showAttack = true }
+            Menu {
+                Button { store.showSettings = true } label: { Label("Настройки", systemImage: "gearshape") }
+            } label: {
+                Image(systemName: "ellipsis").font(.system(size: 22))
+                    .frame(width: 44, height: 54)
             }
-            GameRoundButton(
-                title: "Армия",
-                systemIcon: "pawprint.fill",
-                artAsset: "btn_army",
-                color: .ccGood,
-                size: 52
-            ) {
-                store.showArmy = true
-            }
-            attackButton
-            GameRoundButton(
-                title: "Настройки",
-                systemIcon: "gearshape.fill",
-                artAsset: "btn_settings",
-                color: .gray,
-                size: 44
-            ) {
-                store.showSettings = true
-            }
+            .accessibilityLabel("Ещё действия")
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 6)
-        .padding(.bottom, 6)
-        .background(
-            LinearGradient(
-                colors: [Color.black.opacity(0.0), Color.black.opacity(0.55)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea(edges: .bottom)
-        )
+        .foregroundColor(.white)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 2)
+        .background(Capsule().fill(Color.black.opacity(0.55)))
     }
 
-    private var attackButton: some View {
-        let ready = store.state.attackReady
-        return GameRoundButton(
-            title: ready ? "Атака" : "Отдых",
-            systemIcon: "flame.fill",
-            artAsset: "btn_attack",
-            color: .ccBad,
-            size: 60
-        ) {
-            store.showAttack = true
+    private func action(_ title: String, asset: String, perform: @escaping () -> Void) -> some View {
+        Button(action: perform) {
+            VStack(spacing: 0) {
+                SpriteView(asset: asset, fallbackEmoji: "", size: 30, shadow: false)
+                Text(title).font(.system(size: 10, weight: .semibold))
+            }
+            .frame(width: 62, height: 54)
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+    }
+}
+
+struct PlacementBar: View {
+    @EnvironmentObject var store: GameStore
+
+    var body: some View {
+        HStack(spacing: 8) {
+            if let type = store.placingBuilding {
+                BuildingSpriteView(type: type, size: 32)
+                Text(store.placementSlot == nil ? "Выберите участок" : type.ruName)
+                    .font(.caption).lineLimit(1)
+            }
+            Button("Построить") { store.confirmPlacement() }
+                .frame(minWidth: 80, minHeight: 44)
+                .disabled(store.placementSlot == nil)
+            Button("Отмена") { store.cancelPlacement() }
+                .frame(minWidth: 64, minHeight: 44)
+        }
+        .foregroundColor(.white)
+        .padding(.horizontal, 12)
+        .background(Capsule().fill(Color.black.opacity(0.7)))
+        .padding(.horizontal, 8)
     }
 }
 

@@ -15,8 +15,6 @@ private struct DecorItem: Identifiable {
 /// Большая игровая карта деревни: трава, тайлы, декор, здания, границы.
 struct VillageMap: View {
     @EnvironmentObject var store: GameStore
-    @State private var zoom: CGFloat = 1.0
-    @State private var baseZoom: CGFloat = 1.0
 
     // Дизайн-размеры карты.
     private let cell: CGFloat = 88
@@ -28,40 +26,40 @@ struct VillageMap: View {
     private var contentH: CGFloat { gridH + margin * 2 }
 
     var body: some View {
-        GeometryReader { geo in
-            ScrollViewReader { proxy in
-                ScrollView([.horizontal, .vertical], showsIndicators: false) {
-                    mapContent
-                        .frame(width: contentW, height: contentH)
-                        .scaleEffect(zoom, anchor: .topLeading)
-                        .frame(width: contentW * zoom, height: contentH * zoom, alignment: .topLeading)
-                        .id("village")
-                }
-                .frame(width: geo.size.width, height: geo.size.height)
-                .simultaneousGesture(magnify)
-                .onAppear { proxy.scrollTo("village", anchor: .center) }
-            }
+        MapViewport(worldSize: V2(Double(contentW), Double(contentH)),
+                    home: homePosition,
+                    onTap: select) {
+            mapContent
         }
     }
 
-    private var magnify: some Gesture {
-        MagnificationGesture()
-            .onChanged { v in
-                zoom = min(1.6, max(0.4, baseZoom * v))
-            }
-            .onEnded { _ in
-                baseZoom = zoom
-            }
+    private var homePosition: V2 {
+        let slot = store.state.buildings.first { $0.type == .home }?.slot ?? GameState.homeSlot
+        let point = slotCenter(c: GameState.slotColumn(slot), r: GameState.slotRow(slot))
+        return V2(Double(point.x), Double(point.y))
+    }
+
+    private func select(_ point: V2) {
+        let col = Int(floor((point.x - Double(margin)) / Double(cell)))
+        let row = Int(floor((point.y - Double(margin)) / Double(cell)))
+        guard (0..<GameState.gridColumns).contains(col), (0..<GameState.gridRows).contains(row) else { return }
+        let slot = row * GameState.gridColumns + col
+        if store.placingBuilding != nil {
+            guard !usedSlots.contains(slot) else { store.showToast("Участок занят"); return }
+            store.placementSlot = slot
+        } else {
+            store.selectedBuilding = store.state.buildings.first { $0.slot == slot }
+        }
     }
 
     private var mapContent: some View {
         ZStack(alignment: .topLeading) {
             terrain
             decorLayer
-            tileLayer
-            emptySlotLayer
+            paths
+            if store.placingBuilding != nil { emptySlotLayer }
             buildingLayer
-            villageBorder
+            placementPreview
         }
     }
 
@@ -147,52 +145,42 @@ struct VillageMap: View {
         }
     }
 
-    // MARK: Тайлы земли
-
-    private var tileLayer: some View {
-        ForEach(0..<GameState.slotCount, id: \.self) { slot in
-            let r = GameState.slotRow(slot)
-            let c = GameState.slotColumn(slot)
-            RoundedRectangle(cornerRadius: 10)
-                .fill((r + c) % 2 == 0 ? Color.ccTileA : Color.ccTileB)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.black.opacity(0.12), lineWidth: 1)
-                )
-                .frame(width: cell - 6, height: cell - 6)
-                .position(slotCenter(c: c, r: r))
-                .allowsHitTesting(false)
+    private var paths: some View {
+        Path { p in
+            p.move(to: CGPoint(x: contentW / 2, y: margin))
+            p.addLine(to: CGPoint(x: contentW / 2, y: contentH - margin))
+            p.move(to: CGPoint(x: margin, y: contentH / 2))
+            p.addLine(to: CGPoint(x: contentW - margin, y: contentH / 2))
         }
+        .stroke(Color(red: 0.7, green: 0.61, blue: 0.37).opacity(0.5),
+                style: StrokeStyle(lineWidth: 20, lineCap: .round))
+        .allowsHitTesting(false)
     }
 
-    // MARK: Свободные участки
-
-    private var usedSlots: Set<Int> {
-        Set(store.state.buildings.map { $0.slot })
-    }
+    private var usedSlots: Set<Int> { Set(store.state.buildings.map { $0.slot }) }
 
     private var emptySlotLayer: some View {
         ForEach(0..<GameState.slotCount, id: \.self) { slot in
             if !usedSlots.contains(slot) {
-                let r = GameState.slotRow(slot)
-                let c = GameState.slotColumn(slot)
-                Button {
-                    store.showBuild = true
-                } label: {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 10)
-                            .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [6, 5]))
-                            .foregroundColor(.white.opacity(0.35))
-                        Image(systemName: "plus")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.white.opacity(0.4))
-                    }
-                    .frame(width: cell - 18, height: cell - 18)
-                }
-                .buttonStyle(.plain)
-                .position(slotCenter(c: c, r: r))
-                .accessibilityLabel("Свободный участок, построить")
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.white.opacity(0.35), lineWidth: 1)
+                    .background(RoundedRectangle(cornerRadius: 16).fill(Color.white.opacity(0.05)))
+                    .frame(width: cell - 12, height: cell - 12)
+                    .position(slotCenter(c: GameState.slotColumn(slot), r: GameState.slotRow(slot)))
+                    .accessibilityElement()
+                    .accessibilityLabel("Свободный участок \(slot + 1)")
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityAction { store.placementSlot = slot }
             }
+        }
+    }
+
+    @ViewBuilder private var placementPreview: some View {
+        if let type = store.placingBuilding, let slot = store.placementSlot {
+            BuildingSpriteView(type: type, size: 68)
+                .opacity(0.55)
+                .position(slotCenter(c: GameState.slotColumn(slot), r: GameState.slotRow(slot)))
+                .allowsHitTesting(false)
         }
     }
 
@@ -203,19 +191,11 @@ struct VillageMap: View {
             let c = GameState.slotColumn(b.slot)
             let r = GameState.slotRow(b.slot)
             MapBuilding(building: b, homeHP: store.state.homeHP, homeMax: store.state.homeMaxHP)
+                .background(Ellipse().fill(store.selectedBuilding?.id == b.id ? Color.ccAccent.opacity(0.25) : .clear))
                 .position(slotCenter(c: c, r: r))
-                .onTapGesture {
-                    store.selectedBuilding = b
-                }
+                .accessibilityAddTraits(.isButton)
+                .accessibilityAction { store.selectedBuilding = b }
         }
-    }
-
-    private var villageBorder: some View {
-        RoundedRectangle(cornerRadius: 18)
-            .strokeBorder(Color.white.opacity(0.22), lineWidth: 3)
-            .frame(width: gridW + 24, height: gridH + 24)
-            .position(x: margin + gridW / 2, y: margin + gridH / 2)
-            .allowsHitTesting(false)
     }
 
     private func slotCenter(c: Int, r: Int) -> CGPoint {

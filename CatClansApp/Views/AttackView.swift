@@ -33,10 +33,11 @@ struct AttackView: View {
 
     private var header: some View {
         HStack {
-            PanelTitle(text: "⚔️ Выбор цели")
+            PanelTitle(text: "Штурм деревни")
             Spacer()
             Button { store.showAttack = false } label: {
                 Image(systemName: "xmark.circle.fill")
+                .frame(width: 44, height: 44)
                     .font(.title2)
                     .foregroundColor(.white.opacity(0.7))
             }
@@ -84,12 +85,13 @@ struct AttackCard: View {
     let requiredLevel: Int
 
     var body: some View {
-        let enemy = EnemyGenerator.base(difficulty: difficulty, seed: store.state.seed)
+        let village = VillageAssault.make(difficulty: difficulty, seed: store.state.seed)
+        let enemy = village.enemy
         let locked = store.state.playerLevel < requiredLevel
         let canAttack = !locked && store.state.attackReady && store.state.armySize > 0
 
         VStack(spacing: 6) {
-            EnemyBasePreview(enemy: enemy, size: 84)
+            EnemyBasePreview(village: village, seed: store.state.seed, size: 80)
                 .opacity(locked ? 0.45 : 1)
             Text(enemy.name)
                 .font(.system(size: 12, weight: .bold))
@@ -108,7 +110,7 @@ struct AttackCard: View {
                     .font(.system(size: 10, weight: .bold))
                     .foregroundColor(.orange)
             } else {
-                GameCapsuleButton(title: "Атаковать", icon: "flame.fill", color: canAttack ? .ccBad : .gray, enabled: canAttack) {
+                GameCapsuleButton(title: "Штурм", icon: "flame.fill", color: canAttack ? .ccBad : .gray, enabled: canAttack) {
                     store.launchAttack(difficulty: difficulty)
                 }
             }
@@ -127,49 +129,35 @@ struct AttackCard: View {
     }
 }
 
-/// Миниатюра вражеской базы: ядро, башни и защитники на траве.
+/// Preview uses exactly the same targets, defenders and seed as the actual assault.
 struct EnemyBasePreview: View {
-    let enemy: EnemyBase
+    let village: VillageAssault
+    let seed: UInt64
     var size: CGFloat
 
+    private var simulation: BattleSim {
+        BattleSim(playerUnits: [], playerStructures: [], enemy: village.enemy,
+                  mode: .attack, seed: seed, villageBuildings: village.buildings)
+    }
+
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(
-                    LinearGradient(colors: [Color.ccTileA, Color.ccTileB], startPoint: .top, endPoint: .bottom)
-                )
-            GeometryReader { g in
-                let s = min(g.size.width, g.size.height)
-                let c = CGPoint(x: g.size.width / 2, y: g.size.height * 0.42)
-                ZStack {
-                    // Ядро.
-                    Text(enemy.coreEmoji)
-                        .font(.system(size: s * 0.24))
-                        .position(c)
-                    // Башни по кольцу.
-                    ForEach(Array(enemy.towers.enumerated()), id: \.offset) { i, t in
-                        let angle = 2 * Double.pi * Double(i) / Double(max(1, enemy.towers.count)) + 0.6
-                        let r = s * 0.30
-                        BuildingSpriteView(type: t.type, level: t.level, size: s * 0.22)
-                            .position(
-                                x: c.x + CGFloat(Foundation.cos(angle) * r),
-                                y: c.y + CGFloat(Foundation.sin(angle) * r)
-                            )
-                    }
-                    // Защитники.
-                    ForEach(Array(enemy.defenders.enumerated()), id: \.offset) { i, d in
-                        let angle = 2 * Double.pi * Double(i) / Double(max(1, enemy.defenders.count)) + 2.2
-                        let r = s * 0.36
-                        UnitSpriteView(unit: d.unit, size: s * 0.18)
-                            .position(
-                                x: c.x + CGFloat(Foundation.cos(angle) * r),
-                                y: c.y + CGFloat(Foundation.sin(angle) * r)
-                            )
-                    }
-                }
+        let sim = simulation
+        return ZStack(alignment: .topLeading) {
+            VillageBattleScenery()
+            ForEach(sim.structures) { building in
+                BuildingSpriteView(type: building.type, size: building.isCore ? 86 : 66)
+                    .position(x: CGFloat(building.pos.x * 20), y: CGFloat(building.pos.y * 20))
+            }
+            ForEach(sim.units) { unit in
+                UnitSpriteView(unit: unit.stats.id, size: 32, team: .enemy)
+                    .position(x: CGFloat(unit.pos.x * 20), y: CGFloat(unit.pos.y * 20))
             }
         }
-        .frame(width: size, height: size)
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black.opacity(0.4), lineWidth: 2))
+        .frame(width: 800, height: 800)
+        .scaleEffect(size / 650, anchor: .topLeading)
+        .offset(x: -size * 75 / 650, y: -size * 30 / 650)
+        .frame(width: size, height: size, alignment: .topLeading)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .accessibilityLabel("Деревня \(village.enemy.name): дом, хозяйство, заборы и кошачий гарнизон")
     }
 }

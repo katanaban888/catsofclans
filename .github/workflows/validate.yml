@@ -1,0 +1,29 @@
+name: Validate CatClans
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  core-swift59:
+    runs-on: ubuntu-22.04
+    container: swift:5.9.2-jammy
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift --version && swift build && swift test
+  ios-build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate and validate resources
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install Pillow
+          python3 Scripts/generate_xcode_project.py
+          .venv/bin/python Scripts/validate_game_assets.py
+          git diff --exit-code -- CatClans.xcodeproj/project.pbxproj
+      - name: Build iOS simulator app (no signing)
+        run: >-
+          xcodebuild -project CatClans.xcodeproj -scheme CatClans
+          -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
+          -configuration Debug CODE_SIGNING_ALLOWED=NO build

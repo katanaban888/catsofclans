@@ -10,11 +10,13 @@
 		1C0856EEB4F8CAA4165D6AEB /* Battle/BattleSim.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EE92FA14D83BB850AFA77A3 /* Battle/BattleSim.swift */; };
 		11D58FCB5A52135D21302726 /* Battle/BattleTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5303D21D47E9DE7BD1BF009E /* Battle/BattleTypes.swift */; };
 		3F3A4EEA113C10AFE752689F /* Battle/EnemyGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61412E1D7AA8A8530DC9C465 /* Battle/EnemyGenerator.swift */; };
+		880BA96265C10E46F6996673 /* Battle/VillageAssault.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF5002E388D7B6A35BD5AC50 /* Battle/VillageAssault.swift */; };
 		AE139403E27C49590BCC8A08 /* Model/Buildings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92B7CF28FE9AC9D4DADB5083 /* Model/Buildings.swift */; };
 		FC11C816C1745B054C07CF7F /* Model/Resource.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0334BEA12A9A595F6F1FAE7 /* Model/Resource.swift */; };
 		CDE0F221FB1894D4A4659065 /* Model/Units.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28655A2B490642D327240EB5 /* Model/Units.swift */; };
 		53DAD5457381E4A1976CC487 /* State/GameEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA6758CDD5C3FFC7758B41AA /* State/GameEvents.swift */; };
 		0B938DD202E3234B283A266C /* State/GameState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8622CA10CEC1FD3B9B9201E /* State/GameState.swift */; };
+		3B7408C5A500C96A246498DE /* Support/MapCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73B60AC4F3DABC16E4CCDBEC /* Support/MapCamera.swift */; };
 		F06FC4346D664653D79316AF /* Support/RNG.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75517F0E978B565BD51FF1C5 /* Support/RNG.swift */; };
 		8A53E440A97073B9148A563D /* Support/V2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C83233794D681D50C72CF19 /* Support/V2.swift */; };
 		FDBCE3618881CFA6CC2F4CB5 /* Assets.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF373B2FBDBA7E21C9456FB8 /* Assets.swift */; };
@@ -27,9 +29,11 @@
 		D56CC114010F0335707CFF04 /* Views/BuildSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAAB9F613D9D0CBE804D546B /* Views/BuildSheet.swift */; };
 		01C7C0015A37F39010E79AAE /* Views/BuildingActionPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FEC57C7DB4441C7D44AB31E /* Views/BuildingActionPanel.swift */; };
 		23E8DD6908FFBA7A238580AC /* Views/GameHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FEDB910C5E6F3C3C5B5E94D /* Views/GameHUD.swift */; };
+		D45D4825FDB7EF47582C98A8 /* Views/MapViewport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 339DCA4B687D726617725B26 /* Views/MapViewport.swift */; };
 		68B5803B65C353741970E1B6 /* Views/ResourceHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCB0FE46BCE135A8B5C2C6AA /* Views/ResourceHUD.swift */; };
 		5C582C3EBD104E763F70C71A /* Views/ResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A611BD5EE83B48574287BFD /* Views/ResultView.swift */; };
 		F4776B9650DF4D06E4B44158 /* Views/SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA2A82D69F24F78E5AB5340F /* Views/SettingsView.swift */; };
+		530788863BA897D15A684850 /* Views/VillageBattleScenery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 905916155E5069FDF66C2731 /* Views/VillageBattleScenery.swift */; };
 		64B111259950DE022FB34A13 /* Views/VillageMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = C261F890D1ACF9C6ACEB429F /* Views/VillageMap.swift */; };
 		4D05243BC5777190FF1C05C8 /* Views/VillageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE854989F242745CBE2AF48D /* Views/VillageView.swift */; };
 		04DDB7964F779966617D4790 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B9C04B235F3960D407DED90F /* Assets.xcassets */; };
@@ -39,11 +43,13 @@
 		3EE92FA14D83BB850AFA77A3 /* Battle/BattleSim.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Battle/BattleSim.swift; sourceTree = "<group>"; };
 		5303D21D47E9DE7BD1BF009E /* Battle/BattleTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Battle/BattleTypes.swift; sourceTree = "<group>"; };
 		61412E1D7AA8A8530DC9C465 /* Battle/EnemyGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Battle/EnemyGenerator.swift; sourceTree = "<group>"; };
+		EF5002E388D7B6A35BD5AC50 /* Battle/VillageAssault.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Battle/VillageAssault.swift; sourceTree = "<group>"; };
 		92B7CF28FE9AC9D4DADB5083 /* Model/Buildings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model/Buildings.swift; sourceTree = "<group>"; };
 		C0334BEA12A9A595F6F1FAE7 /* Model/Resource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model/Resource.swift; sourceTree = "<group>"; };
 		28655A2B490642D327240EB5 /* Model/Units.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model/Units.swift; sourceTree = "<group>"; };
 		BA6758CDD5C3FFC7758B41AA /* State/GameEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = State/GameEvents.swift; sourceTree = "<group>"; };
 		D8622CA10CEC1FD3B9B9201E /* State/GameState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = State/GameState.swift; sourceTree = "<group>"; };
+		73B60AC4F3DABC16E4CCDBEC /* Support/MapCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Support/MapCamera.swift; sourceTree = "<group>"; };
 		75517F0E978B565BD51FF1C5 /* Support/RNG.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Support/RNG.swift; sourceTree = "<group>"; };
 		1C83233794D681D50C72CF19 /* Support/V2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Support/V2.swift; sourceTree = "<group>"; };
 		FF373B2FBDBA7E21C9456FB8 /* Assets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Assets.swift; sourceTree = "<group>"; };
@@ -56,9 +62,11 @@
 		DAAB9F613D9D0CBE804D546B /* Views/BuildSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/BuildSheet.swift; sourceTree = "<group>"; };
 		3FEC57C7DB4441C7D44AB31E /* Views/BuildingActionPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/BuildingActionPanel.swift; sourceTree = "<group>"; };
 		5FEDB910C5E6F3C3C5B5E94D /* Views/GameHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/GameHUD.swift; sourceTree = "<group>"; };
+		339DCA4B687D726617725B26 /* Views/MapViewport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/MapViewport.swift; sourceTree = "<group>"; };
 		FCB0FE46BCE135A8B5C2C6AA /* Views/ResourceHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/ResourceHUD.swift; sourceTree = "<group>"; };
 		4A611BD5EE83B48574287BFD /* Views/ResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/ResultView.swift; sourceTree = "<group>"; };
 		BA2A82D69F24F78E5AB5340F /* Views/SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/SettingsView.swift; sourceTree = "<group>"; };
+		905916155E5069FDF66C2731 /* Views/VillageBattleScenery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/VillageBattleScenery.swift; sourceTree = "<group>"; };
 		C261F890D1ACF9C6ACEB429F /* Views/VillageMap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/VillageMap.swift; sourceTree = "<group>"; };
 		FE854989F242745CBE2AF48D /* Views/VillageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/VillageView.swift; sourceTree = "<group>"; };
 		B9C04B235F3960D407DED90F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -103,11 +111,13 @@
 				3EE92FA14D83BB850AFA77A3 /* Battle/BattleSim.swift */,
 				5303D21D47E9DE7BD1BF009E /* Battle/BattleTypes.swift */,
 				61412E1D7AA8A8530DC9C465 /* Battle/EnemyGenerator.swift */,
+				EF5002E388D7B6A35BD5AC50 /* Battle/VillageAssault.swift */,
 				92B7CF28FE9AC9D4DADB5083 /* Model/Buildings.swift */,
 				C0334BEA12A9A595F6F1FAE7 /* Model/Resource.swift */,
 				28655A2B490642D327240EB5 /* Model/Units.swift */,
 				BA6758CDD5C3FFC7758B41AA /* State/GameEvents.swift */,
 				D8622CA10CEC1FD3B9B9201E /* State/GameState.swift */,
+				73B60AC4F3DABC16E4CCDBEC /* Support/MapCamera.swift */,
 				75517F0E978B565BD51FF1C5 /* Support/RNG.swift */,
 				1C83233794D681D50C72CF19 /* Support/V2.swift */,
 			);
@@ -127,9 +137,11 @@
 				DAAB9F613D9D0CBE804D546B /* Views/BuildSheet.swift */,
 				3FEC57C7DB4441C7D44AB31E /* Views/BuildingActionPanel.swift */,
 				5FEDB910C5E6F3C3C5B5E94D /* Views/GameHUD.swift */,
+				339DCA4B687D726617725B26 /* Views/MapViewport.swift */,
 				FCB0FE46BCE135A8B5C2C6AA /* Views/ResourceHUD.swift */,
 				4A611BD5EE83B48574287BFD /* Views/ResultView.swift */,
 				BA2A82D69F24F78E5AB5340F /* Views/SettingsView.swift */,
+				905916155E5069FDF66C2731 /* Views/VillageBattleScenery.swift */,
 				C261F890D1ACF9C6ACEB429F /* Views/VillageMap.swift */,
 				FE854989F242745CBE2AF48D /* Views/VillageView.swift */,
 				B9C04B235F3960D407DED90F /* Assets.xcassets */,
@@ -216,11 +228,13 @@
 				1C0856EEB4F8CAA4165D6AEB /* Battle/BattleSim.swift in Sources */,
 				11D58FCB5A52135D21302726 /* Battle/BattleTypes.swift in Sources */,
 				3F3A4EEA113C10AFE752689F /* Battle/EnemyGenerator.swift in Sources */,
+				880BA96265C10E46F6996673 /* Battle/VillageAssault.swift in Sources */,
 				AE139403E27C49590BCC8A08 /* Model/Buildings.swift in Sources */,
 				FC11C816C1745B054C07CF7F /* Model/Resource.swift in Sources */,
 				CDE0F221FB1894D4A4659065 /* Model/Units.swift in Sources */,
 				53DAD5457381E4A1976CC487 /* State/GameEvents.swift in Sources */,
 				0B938DD202E3234B283A266C /* State/GameState.swift in Sources */,
+				3B7408C5A500C96A246498DE /* Support/MapCamera.swift in Sources */,
 				F06FC4346D664653D79316AF /* Support/RNG.swift in Sources */,
 				8A53E440A97073B9148A563D /* Support/V2.swift in Sources */,
 				FDBCE3618881CFA6CC2F4CB5 /* Assets.swift in Sources */,
@@ -233,9 +247,11 @@
 				D56CC114010F0335707CFF04 /* Views/BuildSheet.swift in Sources */,
 				01C7C0015A37F39010E79AAE /* Views/BuildingActionPanel.swift in Sources */,
 				23E8DD6908FFBA7A238580AC /* Views/GameHUD.swift in Sources */,
+				D45D4825FDB7EF47582C98A8 /* Views/MapViewport.swift in Sources */,
 				68B5803B65C353741970E1B6 /* Views/ResourceHUD.swift in Sources */,
 				5C582C3EBD104E763F70C71A /* Views/ResultView.swift in Sources */,
 				F4776B9650DF4D06E4B44158 /* Views/SettingsView.swift in Sources */,
+				530788863BA897D15A684850 /* Views/VillageBattleScenery.swift in Sources */,
 				64B111259950DE022FB34A13 /* Views/VillageMap.swift in Sources */,
 				4D05243BC5777190FF1C05C8 /* Views/VillageView.swift in Sources */,
 			);
