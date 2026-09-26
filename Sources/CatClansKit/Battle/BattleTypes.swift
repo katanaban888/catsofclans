@@ -1,3 +1,5 @@
+import Foundation
+
 /// Команды в бою.
 public enum Team: Int, Codable, Equatable, Hashable {
     case player = 0
