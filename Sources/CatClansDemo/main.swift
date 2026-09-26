@@ -76,7 +76,7 @@ func runAttack(_ state: inout GameState, difficulty: Int) {
     let enemy = EnemyGenerator.base(difficulty: difficulty, seed: state.seed)
     line()
     print("⚔️  Атака: \(enemy.emoji) \(enemy.name) (сложность \(difficulty))")
-    let defSummary = enemy.defenders.map { "\(UnitTable.def($0.unit).emoji)×\($0.count)" }.joined(separator: "  ")
+    let defSummary = enemy.defenders.map { "\($0.unit.emoji)×\($0.count)" }.joined(separator: "  ")
     let towerSummary = enemy.towers.map { "\(BuildingTable.def($0.type).emoji) ур.\($0.level)" }.joined(separator: "  ")
     print("   Защита: \(defSummary) \(towerSummary.isEmpty ? "" : "+ " + towerSummary)")
     print("   Добыча: \(enemy.loot.display)   Опыт: +\(enemy.xp)")
@@ -105,7 +105,7 @@ func runRaid(_ state: inout GameState) {
     let raid = EnemyGenerator.raid(playerLevel: state.playerLevel, seed: state.seed &+ 777)
     line()
     print("🚨 РЕЙД: \(raid.name) (сила: \(raid.difficulty))")
-    let defSummary = raid.defenders.map { "\(UnitTable.def($0.unit).emoji)×\($0.count)" }.joined(separator: "  ")
+    let defSummary = raid.defenders.map { "\($0.unit.emoji)×\($0.count)" }.joined(separator: "  ")
     print("   Рейдеры: \(defSummary)")
     guard let sim = BattleSim(state: state, enemy: raid, mode: .defense, seed: state.seed &+ 778) else { return }
     var lastID = 0

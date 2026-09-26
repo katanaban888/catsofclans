@@ -106,6 +106,11 @@ public struct BuildingDef: Equatable {
     }
 
     public var isTower: Bool { towerDamage > 0 }
+
+    // Удобен при печати: описание делегируется типу.
+    public var emoji: String { type.emoji }
+    public var ruName: String { type.ruName }
+    public var flavor: String { type.flavor }
 }
 
 /// Статичная таблица зданий и расчёты от уровней.

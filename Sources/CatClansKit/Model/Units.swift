@@ -34,7 +34,7 @@ public enum UnitID: String, CaseIterable, Codable, Identifiable, Hashable {
         case .tiger:     return "🐯"
         case .hamster:   return "🐹"
         case .raccoon:   return "🦝"
-        case .banditCat: return "🐈‍⬛"
+        case .banditCat: return "😼"
         case .dog:       return "🐕"
         case .wolf:      return "🐺"
         case .alphaWolf: return "🐺"

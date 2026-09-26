@@ -65,11 +65,11 @@ struct ArmyRow: View {
         let canTrain = !lockedHome && !lockedAcademy && !full && affordable
 
         HStack(spacing: 12) {
-            Text(def.emoji)
+            Text(unit.emoji)
                 .font(.title2)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
-                    Text(def.ruName)
+                    Text(unit.ruName)
                         .font(.subheadline.bold())
                     if owned + queueCount > 0 {
                         Text("×\(owned + queueCount)")

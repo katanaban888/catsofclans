@@ -31,12 +31,13 @@ final class BattleTests: XCTestCase {
         }
     }
 
-    func testDifferentSeedsMayDiffer() {
-        let s = stateWithArmy([.kitten, .kitten, .warrior])
+    func testDifferentSeedsGiveDifferentBases() {
         let a = EnemyGenerator.base(difficulty: 2, seed: 1)
-        let b = EnemyGenerator.base(difficulty: 2, seed: 2)
-        // Не обязательное равенство, но с такими seed'ами оно почти наверняка другое.
-        XCTAssertNotEqual(a.defenders, b.defenders)
+        let b = EnemyGenerator.base(difficulty: 2, seed: 5)
+        // Детерминированно разные базы: 5 и 4 енота (проверено по SplitMix64).
+        XCTAssertEqual(a.defenders, [UnitSpawn(unit: .raccoon, count: 5)])
+        XCTAssertEqual(b.defenders, [UnitSpawn(unit: .raccoon, count: 4)])
+        XCTAssertNotEqual(a, b)
     }
 
     func testStrongArmyWinsAndTakesFullLoot() {

@@ -56,7 +56,7 @@ struct AttackRow: View {
         let canAttack = !locked && store.state.attackReady && store.state.armySize > 0
 
         let defSummary = enemy.defenders
-            .map { "\(UnitTable.def($0.unit).emoji)×\($0.count)" }
+            .map { "\($0.unit.emoji)×\($0.count)" }
             .joined(separator: " ")
         let towerSummary = enemy.towers
             .map { BuildingTable.def($0.type).emoji }
