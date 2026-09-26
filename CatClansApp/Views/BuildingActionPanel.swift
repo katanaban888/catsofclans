@@ -42,6 +42,7 @@ struct BuildingActionPanel: View {
                 Spacer()
                 Button(action: close) {
                     Image(systemName: "xmark.circle.fill")
+                .frame(width: 44, height: 44)
                         .font(.title2)
                         .foregroundColor(.white.opacity(0.7))
                 }
@@ -86,10 +87,13 @@ struct BuildingActionPanel: View {
             if def.isTower {
                 chip("урон \(BuildingTable.towerDamage(b.type, level: b.level))")
             }
+            if b.type == .bivouac {
+                chip("+\(BuildingTable.armyCapacityBonus(b.type, level: b.level)) мест")
+            }
             let prod = BuildingTable.production(b.type, level: b.level)
             ForEach(Resource.allCases) { r in
                 if let v = prod[r], v > 0 {
-                    chip("+\(Int(v)) \(r.emoji)/мин")
+                    chip(v < 1 ? "+\(Int((v * 60).rounded())) \(r.emoji)/час" : "+\(Int(v)) \(r.emoji)/мин")
                 }
             }
         }

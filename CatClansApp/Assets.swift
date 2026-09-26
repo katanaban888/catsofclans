@@ -5,8 +5,7 @@ import UIKit
 // MARK: - Имена ассетов
 
 /// Сопоставление моделей игры именам картинок в Assets.xcassets.
-/// Если картинки нет — представления показывают эмодзи-фолбэк,
-/// поэтому игра остаётся цельной даже при частично готовом наборе артов.
+/// Игровые коты и здания обязательны: отсутствие PNG — ошибка сборки ассетов.
 enum GameArt {
     static func buildingAsset(_ type: BuildingType, level: Int) -> String? {
         switch type {
@@ -25,6 +24,9 @@ enum GameArt {
         case .cannon:      return "b_cannon"
         case .sniper:      return "b_sniper"
         case .trap:        return "b_trap"
+        case .yarnMill: return "b_yarnmill"
+        case .mouseExpedition: return "b_expedition"
+        case .bivouac: return "b_bivouac"
         }
     }
 
@@ -64,7 +66,7 @@ struct SpriteView: View {
     var shadow: Bool = true
 
     var body: some View {
-        if let asset = asset, let ui = UIImage(named: asset) {
+        if let asset = asset, let ui = UIImage(named: asset, in: .main, compatibleWith: nil) {
             Image(uiImage: ui)
                 .resizable()
                 .scaledToFit()
@@ -88,11 +90,8 @@ struct BuildingSpriteView: View {
     var size: CGFloat
 
     var body: some View {
-        SpriteView(
-            asset: GameArt.buildingAsset(type, level: level),
-            fallbackEmoji: type.emoji,
-            size: size
-        )
+        RequiredSpriteView(asset: GameArt.buildingAsset(type, level: level) ?? type.rawValue, size: size)
+            .accessibilityLabel(type.ruName)
     }
 }
 
@@ -103,11 +102,8 @@ struct UnitSpriteView: View {
     var team: Team = .player
 
     var body: some View {
-        SpriteView(
-            asset: GameArt.unitAsset(unit),
-            fallbackEmoji: unit.emoji,
-            size: size
-        )
+        RequiredSpriteView(asset: GameArt.unitAsset(unit) ?? unit.rawValue, size: size)
+        .accessibilityLabel(unit.ruName)
         .saturation(team == .enemy ? 0.9 : 1.0)
         .overlay(
             // Лёгкая красная подсветка врагов в бою.
@@ -129,5 +125,30 @@ struct ResourceIcon: View {
             size: size,
             shadow: false
         )
+    }
+}
+
+/// Never silently replaces a required sprite with an emoji, including Release builds.
+struct RequiredSpriteView: View {
+    let asset: String
+    let size: CGFloat
+
+    private var image: UIImage? {
+        let image = UIImage(named: asset, in: .main, compatibleWith: nil)
+        assert(image != nil, "CatClans: required asset '\(asset)' missing from Bundle.main. Check PNG, Contents.json and CatClans Resources phase.")
+        return image
+    }
+
+    var body: some View {
+        Group {
+            if let image = image {
+                Image(uiImage: image).resizable().scaledToFit()
+            } else {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .resizable().scaledToFit().foregroundColor(.red)
+                    .accessibilityLabel("Отсутствует изображение \(asset)")
+            }
+        }
+        .frame(width: size, height: size)
     }
 }

@@ -55,6 +55,7 @@ struct ArmyPanel: View {
     private var closeBtn: some View {
         Button { store.showArmy = false } label: {
             Image(systemName: "xmark.circle.fill")
+                .frame(width: 44, height: 44)
                 .font(.title2)
                 .foregroundColor(.white.opacity(0.7))
         }

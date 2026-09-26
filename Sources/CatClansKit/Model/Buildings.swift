@@ -12,6 +12,9 @@ public enum BuildingType: String, CaseIterable, Codable, Identifiable, Hashable 
     case cannon
     case sniper
     case trap
+    case yarnMill
+    case mouseExpedition
+    case bivouac
 
     public var id: String { rawValue }
 
@@ -27,6 +30,9 @@ public enum BuildingType: String, CaseIterable, Codable, Identifiable, Hashable 
         case .cannon:      return "💣"
         case .sniper:      return "🎯"
         case .trap:        return "🪤"
+        case .yarnMill: return "🧵"
+        case .mouseExpedition: return "🗺️"
+        case .bivouac: return "⛺"
         }
     }
 
@@ -42,11 +48,17 @@ public enum BuildingType: String, CaseIterable, Codable, Identifiable, Hashable 
         case .cannon:      return "Пушка мурлыки"
         case .sniper:      return "Снайперские усы"
         case .trap:        return "Котоловушка"
+        case .yarnMill: return "Клубочная мастерская"
+        case .mouseExpedition: return "Мышиная экспедиция"
+        case .bivouac: return "Кошачий бивак"
         }
     }
 
     public var flavor: String {
         switch self {
+        case .yarnMill: return "Наматывает пряжу: +3 в минуту за уровень. До 4 уровней; нужен Дом 2."
+        case .mouseExpedition: return "Разведчики приносят 1 мышь в час за уровень. Одна экспедиция, до 3 уровней; нужен Дом 4."
+        case .bivouac: return "Уютный лагерь даёт +2 места в армии за уровень. До 3 уровней; нужен Дом 2. Не заменяет Академию."
         case .home:        return "Сердце деревни. Его уровень открывает новые постройки и бойцов."
         case .workshop:    return "Усиливает здоровье и урон всей армии, ускоряет обучение."
         case .fishTrap:    return "Ловит рыб. Источник 🐟."
@@ -166,6 +178,20 @@ public enum BuildingTable {
             baseBuildCost: ResourceAmounts(fish: 700, yarn: 120), baseHP: 100,
             trapRadius: 3.5, trapStun: 2.5
         )
+        d[.yarnMill] = BuildingDef(
+            type: .yarnMill, maxLevel: 4, requiredHomeLevel: 2,
+            baseBuildCost: ResourceAmounts(fish: 280, cream: 100, yarn: 30),
+            baseProductionPerMinute: [.yarn: 3], baseHP: 180
+        )
+        d[.mouseExpedition] = BuildingDef(
+            type: .mouseExpedition, maxLevel: 3, requiredHomeLevel: 4,
+            baseBuildCost: ResourceAmounts(fish: 1000, cream: 600, yarn: 200),
+            baseProductionPerMinute: [.mouse: 1.0 / 60.0], baseHP: 180
+        )
+        d[.bivouac] = BuildingDef(
+            type: .bivouac, maxLevel: 3, requiredHomeLevel: 2,
+            baseBuildCost: ResourceAmounts(fish: 320, cream: 150, yarn: 50), baseHP: 220
+        )
         return d
     }()
 
@@ -174,6 +200,15 @@ public enum BuildingTable {
             return d
         }
         fatalError("BuildingTable: нет определения для \(type.rawValue)")
+    }
+
+    public static func armyCapacityBonus(_ type: BuildingType, level: Int) -> Int {
+        type == .bivouac ? 2 * max(0, level) : 0
+    }
+
+    /// Только экспедиция ограничена одной постройкой: мыши остаются боевой наградой.
+    public static func buildLimit(_ type: BuildingType) -> Int? {
+        type == .mouseExpedition ? 1 : nil
     }
 
     /// Стоимость постройки 1 уровня.

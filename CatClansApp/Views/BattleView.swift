@@ -1,124 +1,122 @@
 import Foundation
 import SwiftUI
 
-// MARK: - Экран боя (landscape)
-
 struct BattleScreen: View {
     @EnvironmentObject var store: GameStore
+    @State private var showLog = false
 
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [Color(red: 0.10, green: 0.16, blue: 0.10), Color(red: 0.06, green: 0.10, blue: 0.06)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-
-            if let b = store.battle {
+            Color.ccGrassB.ignoresSafeArea()
+            if let battle = store.battle {
                 VStack(spacing: 0) {
-                    battleTopHUD(b)
-                    HStack(spacing: 0) {
-                        EventLog(events: b.events)
-                            .frame(width: 128)
-                        ArenaView(battle: b)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        BattleControls()
-                            .frame(width: 100)
-                    }
-                    if store.battleMode == .attack {
-                        DeploymentTray()
-                    }
+                    BattleStatusBar(battle: battle)
+                    ArenaView(battle: battle)
+                        .overlay(alignment: .bottom) {
+                            HStack(spacing: 4) {
+                                if store.battleMode == .attack { DeploymentTray() }
+                                BattleControls()
+                                Button { showLog.toggle() } label: {
+                                    Image(systemName: "list.bullet").frame(width: 44, height: 44)
+                                }
+                                .accessibilityLabel(showLog ? "Скрыть журнал" : "Журнал боя")
+                            }
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 2)
+                            .background(Capsule().fill(Color.black.opacity(0.6)))
+                            .frame(maxWidth: 540)
+                            .padding(.horizontal, 8)
+                            .padding(.bottom, 8)
+                        }
+                        .overlay(alignment: .leading) {
+                            if showLog {
+                                VStack(spacing: 0) {
+                                    Button("Закрыть журнал") { showLog = false }.frame(height: 44)
+                                    EventLog(events: battle.events)
+                                }
+                                .frame(width: 180, height: 170)
+                                .background(Color.black.opacity(0.8))
+                            }
+                        }
                 }
             }
         }
-    }
-
-    private func battleTopHUD(_ b: BattleSnapshot) -> some View {
-        HStack(spacing: 12) {
-            Text(store.battleTitle)
-                .font(.headline)
-                .foregroundColor(.white)
-                .lineLimit(1)
-            Spacer()
-            Text(fmtClock(b.time))
-                .font(.title3.bold().monospacedDigit())
-                .foregroundColor(.ccAccent)
-            ProgressView(value: b.time, total: max(1, b.limit))
-                .tint(Color.ccAccent)
-                .frame(width: 120)
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
-        .background(Color.black.opacity(0.5))
     }
 }
 
-// MARK: - Арена
+private struct BattleStatusBar: View {
+    @EnvironmentObject var store: GameStore
+    let battle: BattleSnapshot
+
+    private var destruction: Double {
+        let targets = battle.structures.filter { $0.team == (store.battleMode == .attack ? .enemy : .player) }
+        let total = targets.reduce(0) { $0 + $1.maxHP }
+        let destroyed = targets.filter { $0.destroyed }.reduce(0) { $0 + $1.maxHP }
+        return Double(destroyed) / Double(max(1, total))
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(store.battleTitle).font(.system(size: 12, weight: .bold)).lineLimit(1).minimumScaleFactor(0.7)
+            Spacer(minLength: 0)
+            if store.battleMode == .attack {
+                Text("Добыча до \(store.battleLoot.display)").font(.system(size: 10)).lineLimit(1)
+            }
+            Text("\(Int(destruction * 100))% разрушено").font(.system(size: 10))
+            Text(fmtClock(battle.time)).font(.system(size: 12, weight: .bold).monospacedDigit())
+        }
+        .foregroundColor(.white)
+        .padding(.horizontal, 10).padding(.vertical, 4)
+        .background(Color.black.opacity(0.35))
+    }
+}
 
 struct ArenaView: View {
     @EnvironmentObject var store: GameStore
-    @State private var ghost: CGPoint?
+    @State private var ghost: V2?
     let battle: BattleSnapshot
+    private let tile: CGFloat = 20
 
     var body: some View {
-        GeometryReader { geo in
-            let side = min(geo.size.width, geo.size.height)
-            let s = side / CGFloat(BattleSim.mapSize)
-            let ox = (geo.size.width - side) / 2
-            let oy = (geo.size.height - side) / 2
+        MapViewport(worldSize: V2(800, 800), home: V2(400, 340), initialZoom: 1.4,
+                    onTap: deploy, onPreview: preview) {
             ZStack(alignment: .topLeading) {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(
-                        LinearGradient(colors: [Color.ccTileB, Color.ccGrassB], startPoint: .top, endPoint: .bottom)
-                    )
-                    .frame(width: side, height: side)
-                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
-
+                VillageBattleScenery()
                 if !store.deploymentUnits.isEmpty {
-                    Rectangle().fill(Color.ccGood.opacity(0.15))
-                        .frame(width: side, height: side / 2)
-                        .position(x: ox + side / 2, y: oy + side * 0.75)
-                        .allowsHitTesting(false)
+                    Rectangle().fill(Color.ccGood.opacity(0.12))
+                        .frame(width: 800, height: 400).position(x: 400, y: 600)
+                    Path { p in
+                        p.move(to: CGPoint(x: 0, y: 400)); p.addLine(to: CGPoint(x: 800, y: 400))
+                    }.stroke(Color.ccGood.opacity(0.6), style: StrokeStyle(lineWidth: 2, dash: [8, 8]))
+                }
+                ForEach(battle.structures) { structure in
+                    BattleStructureView(snap: structure, tile: tile)
+                        .position(x: CGFloat(structure.x) * tile, y: CGFloat(structure.y) * tile)
+                }
+                ForEach(battle.units.filter { $0.hp > 0 }) { unit in
+                    BattleUnitView(snap: unit, tile: tile)
+                        .position(x: CGFloat(unit.x) * tile, y: CGFloat(unit.y) * tile)
                 }
                 if let point = ghost, let unit = store.deploymentUnits.first {
-                    UnitSpriteView(unit: unit, size: 32)
+                    UnitSpriteView(unit: unit, size: tile * 1.4)
                         .opacity(0.65)
-                        .position(point)
-                        .allowsHitTesting(false)
+                        .position(x: CGFloat(point.x) * tile, y: CGFloat(point.y) * tile)
                 }
-
-                ForEach(battle.structures) { st in
-                    BattleStructureView(snap: st, tile: s)
-                        .position(x: ox + st.x * s, y: oy + st.y * s)
-                }
-                ForEach(battle.units) { u in
-                    BattleUnitView(snap: u, tile: s)
-                        .position(x: ox + u.x * s, y: oy + u.y * s)
-                }
-            }
-            .frame(width: geo.size.width, height: geo.size.height)
-            .contentShape(Rectangle())
-            .gesture(DragGesture(minimumDistance: 0)
-                .onChanged { value in
-                    guard !store.paused, !store.deploymentUnits.isEmpty else { return }
-                    ghost = CGPoint(x: min(ox + side - s / 2, max(ox + s / 2, value.location.x)),
-                                    y: min(oy + side - s / 2, max(oy + side / 2, value.location.y)))
-                }
-                .onEnded { value in
-                    ghost = nil
-                    guard side > 0,
-                          value.location.x >= ox, value.location.x <= ox + side,
-                          value.location.y >= oy + side / 2, value.location.y <= oy + side else { return }
-                    store.deploy(at: V2(Double((value.location.x - ox) / s),
-                                        Double((value.location.y - oy) / s)))
-                })
-            .accessibilityLabel("Поле боя. Высадка котов в нижней половине")
-            .accessibilityAction(named: Text("Высадить следующего кота в центре")) {
-                store.deploy(at: V2(20, 35))
             }
         }
-        .padding(8)
+        .accessibilityLabel("Деревня. Тап — высадка в нижней половине, движение — камера")
+        .accessibilityAction(named: Text("Высадить следующего кота в центре")) { store.deploy(at: V2(20, 35)) }
+    }
+
+    private func deploy(_ world: V2) {
+        guard let point = BattleMapInput.deploymentPoint(world: world) else { return }
+        store.deploy(at: point)
+    }
+
+    private func preview(_ world: V2?) {
+        guard !store.paused, !store.deploymentUnits.isEmpty, let world = world else { ghost = nil; return }
+        ghost = BattleMapInput.deploymentPoint(world: world)
     }
 }
 
@@ -126,11 +124,10 @@ private struct DeploymentTray: View {
     @EnvironmentObject var store: GameStore
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 6) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Осталось: \(store.deploymentUnits.count)").font(.caption.bold())
-                Text(store.awaitingDeployment ? "Тапните по нижней половине — начать" : "Высаживайте подкрепление тапом")
-                    .font(.system(size: 10))
+                Text("Резерв").font(.system(size: 10))
+                Text("\(store.deploymentUnits.count)").font(.caption.bold())
             }
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
@@ -149,17 +146,17 @@ private struct DeploymentTray: View {
                     }
                 }
             }
-            Button("Авто-высадка") { store.autoDeploy() }
-                .font(.caption.bold())
-                .padding(10)
-                .background(Capsule().fill(Color.ccGood.opacity(0.6)))
+            Button { store.autoDeploy() } label: {
+                VStack(spacing: 0) {
+                    Image(systemName: "arrow.down.to.line").font(.system(size: 16))
+                    Text("Авто").font(.system(size: 10))
+                }.frame(width: 44, height: 44)
+            }
                 .disabled(store.deploymentUnits.isEmpty)
                 .accessibilityLabel("Высадить всех оставшихся котов")
         }
         .foregroundColor(.white)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 4)
-        .background(Color.black.opacity(0.5))
+
     }
 }
 
@@ -169,18 +166,25 @@ struct BattleStructureView: View {
 
     var body: some View {
         VStack(spacing: 1) {
-            BuildingSpriteView(type: snap.type, level: snap.level, size: tile * 2.4)
+            BuildingSpriteView(type: snap.type, level: snap.level, size: tile * 3.3)
                 .opacity(snap.destroyed ? 0.25 : 1)
                 .saturation(snap.destroyed ? 0 : 1)
                 .overlay(
                     snap.destroyed
-                        ? SpriteView(asset: "fx_boom", fallbackEmoji: "💥", size: tile * 1.4)
+                        ? SpriteView(asset: "fx_boom", fallbackEmoji: "💥", size: tile * 2.2)
                         : nil
                 )
             if !snap.destroyed {
                 HPBar(frac: Double(snap.hp) / Double(max(1, snap.maxHP)), width: tile * 2.2)
             }
         }
+        .overlay(alignment: .topTrailing) {
+            if !snap.destroyed && snap.hp < snap.maxHP / 2 {
+                Image(systemName: "bolt.fill").foregroundColor(.orange)
+                    .font(.system(size: tile)).rotationEffect(.degrees(18))
+            }
+        }
+        .accessibilityLabel("\(snap.type.ruName), \(snap.destroyed ? "разрушено" : "HP \(snap.hp)")")
     }
 }
 
@@ -189,14 +193,16 @@ struct BattleUnitView: View {
     let tile: CGFloat
 
     var body: some View {
-        VStack(spacing: 1) {
-            UnitSpriteView(unit: snap.unit, size: tile * 1.4, team: snap.team)
-                .opacity(snap.hp > 0 ? 1 : 0)
-                .overlay(
-                    snap.stunned ? Text("💫").font(.system(size: tile * 0.8)) : nil
-                )
-            HPBar(frac: Double(snap.hp) / Double(max(1, snap.maxHP)), width: tile * 1.3)
-        }
+        UnitSpriteView(unit: snap.unit, size: tile * 1.4, team: snap.team)
+            .overlay(alignment: .bottom) {
+                HPBar(frac: Double(snap.hp) / Double(max(1, snap.maxHP)), width: tile * 1.3)
+                    .offset(y: 6)
+            }
+            .overlay(alignment: .top) {
+                if snap.stunned {
+                    Image(systemName: "sparkles").foregroundColor(.yellow).font(.system(size: tile * 0.6))
+                }
+            }
     }
 }
 
@@ -238,52 +244,27 @@ struct BattleControls: View {
     @EnvironmentObject var store: GameStore
 
     var body: some View {
-        VStack(spacing: 14) {
-            Button(action: { store.togglePause() }) {
-                Image(systemName: store.paused ? "play.fill" : "pause.fill")
-                    .font(.title2)
-                    .foregroundColor(.white)
-                    .frame(width: 52, height: 52)
-                    .background(Circle().fill(Color.white.opacity(0.15)))
+        HStack(spacing: 2) {
+            Button { store.togglePause() } label: {
+                Image(systemName: store.paused ? "play.fill" : "pause.fill").frame(width: 44, height: 44)
             }
-            .buttonStyle(.plain)
             .accessibilityLabel(store.paused ? "Продолжить" : "Пауза")
-
-            HStack(spacing: 6) {
-                speedBtn(1)
-                speedBtn(2)
-                speedBtn(4)
-            }
-
-            Button(action: { store.surrender() }) {
-                VStack(spacing: 2) {
-                    Image(systemName: "flag.fill").font(.subheadline)
-                    Text("Сдаться").font(.system(size: 10, weight: .bold))
+            Menu {
+                ForEach([1, 2, 4], id: \.self) { speed in
+                    Button("\(speed)×") { store.setSpeed(speed) }
                 }
-                .foregroundColor(.white)
-                .frame(width: 64, height: 48)
-                .background(RoundedRectangle(cornerRadius: 10).fill(Color.ccBad.opacity(0.8)))
+            } label: {
+                Text("\(store.speed)×").font(.caption.bold()).frame(width: 44, height: 44)
             }
-            .buttonStyle(.plain)
+            .accessibilityLabel("Скорость боя, сейчас \(store.speed)")
+            Button { store.surrender() } label: {
+                VStack(spacing: 0) {
+                    Image(systemName: "flag.fill").font(.system(size: 16))
+                    Text("Уйти").font(.system(size: 10))
+                }.frame(width: 44, height: 44)
+            }
             .accessibilityLabel("Отступить")
-
-            Spacer()
-        }
-        .padding(.trailing, 8)
-    }
-
-    private func speedBtn(_ v: Int) -> some View {
-        Button(action: { store.setSpeed(v) }) {
-            Text("\(v)×")
-                .font(.system(size: 12, weight: .heavy))
-                .foregroundColor(.white)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 5)
-                .background(
-                    Capsule().fill(store.speed == v ? Color.ccAccent : Color.white.opacity(0.12))
-                )
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Скорость \(v)")
     }
 }

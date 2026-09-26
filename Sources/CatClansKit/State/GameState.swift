@@ -174,9 +174,11 @@ public struct GameState: Codable, Equatable {
         return BuildingTable.maxHP(.home, level: homeLevel)
     }
 
-    /// Вместимость армии: 2 + 2×уровень Академии.
+    /// Вместимость армии: прежние 2 + 2×уровень Академии, плюс бонус построенных биваков.
     public var armyCapacity: Int {
-        return 2 + 2 * academyLevel
+        return 2 + 2 * academyLevel + buildings.reduce(0) {
+            $0 + BuildingTable.armyCapacityBonus($1.type, level: $1.level)
+        }
     }
 
     public var armySize: Int {
@@ -343,6 +345,21 @@ public struct GameState: Codable, Equatable {
         }
         guard let slot = nextFreeSlot() else {
             return .error("Нет свободных участков в деревне.")
+        }
+        return build(type, at: slot)
+    }
+
+    /// Explicit placement. Every validation precedes the transaction; errors are atomic.
+    public mutating func build(_ type: BuildingType, at slot: Int) -> GameResult {
+        guard type != .home else { return .error("Дом уже построен.") }
+        let def = BuildingTable.def(type)
+        guard homeLevel >= def.requiredHomeLevel else {
+            return .error("Нужен Дом котов \(def.requiredHomeLevel) ур.")
+        }
+        guard (0..<Self.slotCount).contains(slot) else { return .error("Недопустимый участок.") }
+        guard !buildings.contains(where: { $0.slot == slot }) else { return .error("Участок занят.") }
+        if let limit = BuildingTable.buildLimit(type), buildings.filter({ $0.type == type }).count >= limit {
+            return .error("Можно построить только \(limit): \(type.ruName).")
         }
         let cost = BuildingTable.buildCost(type)
         guard resources.canAfford(cost) else {
