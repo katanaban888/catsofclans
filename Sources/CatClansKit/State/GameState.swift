@@ -5,7 +5,7 @@ public struct PlacedBuilding: Codable, Equatable, Hashable, Identifiable {
     public let id: Int
     public var type: BuildingType
     public var level: Int
-    /// Позиция на сетке 5×4 (0...19), индекс = строка × 5 + столбец.
+    /// Позиция на сетке деревни, индекс = строка × gridColumns + столбец.
     public var slot: Int
 
     public init(id: Int, type: BuildingType, level: Int, slot: Int) {
@@ -65,7 +65,7 @@ public struct ProductionAcc: Codable, Equatable {
 
 /// Полное состояние деревни. Это и есть «сейв» — сериализуется в JSON.
 public struct GameState: Codable, Equatable {
-    public var version: Int = 1
+    public var version: Int = 2
     /// Seed для генерации врагов.
     public var seed: UInt64 = 0
     /// Собственные «игровые» секунды с момента основания деревни.
@@ -98,10 +98,10 @@ public struct GameState: Codable, Equatable {
         s.resources = ResourceAmounts(fish: 150, cream: 80, yarn: 30, mouse: 5)
         s.buildings = [
             PlacedBuilding(id: 1, type: .home, level: 1, slot: GameState.homeSlot),
-            PlacedBuilding(id: 2, type: .fishTrap, level: 1, slot: 6),
-            PlacedBuilding(id: 3, type: .creamBarrel, level: 1, slot: 8),
-            PlacedBuilding(id: 4, type: .academy, level: 1, slot: 12),
-            PlacedBuilding(id: 5, type: .wall, level: 1, slot: 11),
+            PlacedBuilding(id: 2, type: .fishTrap, level: 1, slot: homeSlot - 1),
+            PlacedBuilding(id: 3, type: .creamBarrel, level: 1, slot: homeSlot + 1),
+            PlacedBuilding(id: 4, type: .academy, level: 1, slot: homeSlot + gridColumns),
+            PlacedBuilding(id: 5, type: .wall, level: 1, slot: homeSlot + gridColumns - 1),
         ]
         s.homeHP = Double(BuildingTable.maxHP(.home, level: 1))
         s.lastSavedWall = Date().timeIntervalSince1970
@@ -110,17 +110,47 @@ public struct GameState: Codable, Equatable {
 
     // MARK: - Сетка
 
-    /// Сетка деревни 5×4.
-    public static let gridColumns = 5
-    public static let gridRows = 4
+    /// Сетка деревни 9×7.
+    public static let gridColumns = 9
+    public static let gridRows = 7
     public static let slotCount = gridColumns * gridRows
     /// Дом котов стоит по центру.
-    public static let homeSlot = 1 * gridColumns + 2
+    public static let homeSlot = (gridRows / 2) * gridColumns + gridColumns / 2
 
     /// Порядок заселения свободных участков: спиралью от центра.
-    public static let slotBuildOrder: [Int] = [
-        6, 8, 12, 2, 11, 13, 1, 3, 17, 5, 9, 10, 14, 16, 18, 0, 4, 15, 19, 7,
-    ]
+    public static let slotBuildOrder: [Int] = {
+        var slots = [homeSlot]
+        var x = gridColumns / 2
+        var y = gridRows / 2
+        var length = 1
+        let directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+        var direction = 0
+        while slots.count < slotCount {
+            for _ in 0..<2 {
+                let delta = directions[direction % 4]
+                for _ in 0..<length {
+                    x += delta.0
+                    y += delta.1
+                    if (0..<gridColumns).contains(x) && (0..<gridRows).contains(y) {
+                        slots.append(y * gridColumns + x)
+                    }
+                }
+                direction += 1
+            }
+            length += 1
+        }
+        return slots
+    }()
+
+    /// Recenter legacy 5×4 saves without changing building IDs or levels.
+    public mutating func migrateVillageGrid() {
+        guard version < 2 else { return }
+        for i in buildings.indices {
+            let slot = buildings[i].slot
+            buildings[i].slot = (slot / 5 + 2) * Self.gridColumns + slot % 5 + 2
+        }
+        version = 2
+    }
 
     public static func slotColumn(_ slot: Int) -> Int { slot % gridColumns }
     public static func slotRow(_ slot: Int) -> Int { slot / gridColumns }

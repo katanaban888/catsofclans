@@ -24,8 +24,8 @@ struct AttackView: View {
                     .padding(.bottom, 6)
                 }
             }
-            .padding(.vertical, 12)
-            .frame(maxWidth: 900)
+            .padding(.vertical, 8)
+            .frame(maxWidth: 540)
             .background(WoodPanel(corner: 20))
             .padding(.horizontal, 20)
         }
@@ -49,18 +49,19 @@ struct AttackView: View {
     @ViewBuilder
     private var armyStatus: some View {
         HStack(spacing: 10) {
-            let roster = UnitTable.playerUnits.compactMap { u -> String? in
-                let n = store.state.armyCount(u)
-                return n > 0 ? "\(u.emoji)×\(n)" : nil
-            }
-            if roster.isEmpty {
-                Label("Армия пуста — обучите котов в Академии!", systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption.bold())
-                    .foregroundColor(.orange)
+            if store.state.armySize == 0 {
+                Text("Армия пуста — обучите котов!")
+                    .font(.caption.bold()).foregroundColor(.orange)
             } else {
-                Text(roster.joined(separator: "  "))
-                    .font(.caption.bold())
-                    .foregroundColor(.white.opacity(0.9))
+                ForEach(UnitTable.playerUnits, id: \.self) { unit in
+                    let count = store.state.armyCount(unit)
+                    if count > 0 {
+                        HStack(spacing: 2) {
+                            UnitSpriteView(unit: unit, size: 22)
+                            Text("×\(count)").font(.caption.bold()).foregroundColor(.white)
+                        }
+                    }
+                }
             }
             Spacer()
             if !store.state.attackReady {
@@ -88,7 +89,7 @@ struct AttackCard: View {
         let canAttack = !locked && store.state.attackReady && store.state.armySize > 0
 
         VStack(spacing: 6) {
-            EnemyBasePreview(enemy: enemy, size: 110)
+            EnemyBasePreview(enemy: enemy, size: 84)
                 .opacity(locked ? 0.45 : 1)
             Text(enemy.name)
                 .font(.system(size: 12, weight: .bold))
@@ -112,8 +113,8 @@ struct AttackCard: View {
                 }
             }
         }
-        .padding(10)
-        .frame(width: 160)
+        .padding(8)
+        .frame(width: 128)
         .background(
             RoundedRectangle(cornerRadius: 14)
                 .fill(Color.white.opacity(0.06))

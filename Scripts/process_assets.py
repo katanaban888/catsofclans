@@ -125,7 +125,7 @@ def process(name: str, raw_file: str, target: int) -> bool:
     if not os.path.exists(src):
         return False
     img = Image.open(src)
-    img = remove_checker_background(img)
+    img = img.convert("RGBA") if name == "map_bg" else remove_checker_background(img)
 
     alpha = img.getchannel("A")
     bbox = alpha.getbbox()

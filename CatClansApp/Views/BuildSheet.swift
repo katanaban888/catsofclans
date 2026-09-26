@@ -31,8 +31,8 @@ struct BuildSheet: View {
                     .padding(.bottom, 6)
                 }
             }
-            .padding(.vertical, 12)
-            .frame(maxWidth: 760)
+            .padding(.vertical, 8)
+            .frame(maxWidth: 540)
             .background(WoodPanel(corner: 20))
             .padding(.horizontal, 20)
         }
@@ -65,7 +65,7 @@ struct BuildCard: View {
             store.build(type)
         } label: {
             VStack(spacing: 6) {
-                BuildingSpriteView(type: type, level: 1, size: 64)
+                BuildingSpriteView(type: type, level: 1, size: 48)
                     .opacity(locked ? 0.4 : 1)
                 Text(def.ruName)
                     .font(.system(size: 12, weight: .bold))
@@ -80,7 +80,7 @@ struct BuildCard: View {
                     ResourceLine(amount: cost, affordable: affordable)
                 }
             }
-            .padding(10)
+            .padding(8)
             .frame(width: 128)
             .background(
                 RoundedRectangle(cornerRadius: 14)

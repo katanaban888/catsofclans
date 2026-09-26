@@ -12,7 +12,7 @@ struct GameHUD: View {
             ResourceHUD(resources: store.state.resources)
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .padding(.vertical, 3)
         .background(
             LinearGradient(
                 colors: [Color.black.opacity(0.55), Color.black.opacity(0.0)],

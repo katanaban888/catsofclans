@@ -25,6 +25,9 @@ public final class BattleSim {
     public static let structureRadius: Double = 1.3
     public static let unitRadius: Double = 0.5
 
+    public private(set) var deployQueue: [UnitStats] = []
+    public private(set) var awaitingDeployment = false
+
     public let dt: TimeInterval = 0.1
 
     public private(set) var units: [BattleUnit] = []
@@ -59,7 +62,8 @@ public final class BattleSim {
         enemy: EnemyBase,
         mode: BattleMode,
         playerCoreHP: Int? = nil,
-        seed: UInt64
+        seed: UInt64,
+        manualDeployment: Bool = false
     ) {
         self.mode = mode
         self.enemyName = enemy.name
@@ -107,8 +111,13 @@ public final class BattleSim {
                     addUnit(UnitStats(id: spawn.unit), team: .enemy, pos: pos)
                 }
             }
-            let n = playerUnits.count
-            for (i, stats) in playerUnits.enumerated() {
+            if manualDeployment {
+                deployQueue = playerUnits
+                awaitingDeployment = !playerUnits.isEmpty
+            }
+            let initialUnits = manualDeployment ? [] : playerUnits
+            let n = initialUnits.count
+            for (i, stats) in initialUnits.enumerated() {
                 let x: Double
                 if n <= 1 {
                     x = 20
@@ -226,6 +235,33 @@ public final class BattleSim {
         }
     }
 
+    /// Opt-in manual attack; the existing initializer remains automatic.
+    public convenience init?(state: GameState, enemy: EnemyBase, seed: UInt64,
+                             manualDeployment: Bool) {
+        guard state.armySize > 0 else { return nil }
+        self.init(playerUnits: state.armyStats, playerStructures: [], enemy: enemy,
+                  mode: .attack, seed: seed, manualDeployment: manualDeployment)
+    }
+
+    /// Deployment is deterministic input, never consumes RNG.
+    @discardableResult
+    public func deployNext(at pos: V2) -> Bool {
+        guard mode == .attack, !finished, !deployQueue.isEmpty,
+              pos.x.isFinite, pos.y.isFinite else { return false }
+        let point = V2(min(39.5, max(0.5, pos.x)), min(39.5, max(20, pos.y)))
+        addUnit(deployQueue.removeFirst(), team: .player, pos: point)
+        awaitingDeployment = false
+        return true
+    }
+
+    public func deployRemaining() {
+        let count = deployQueue.count
+        for i in 0..<count {
+            let x = count <= 1 ? 20 : 8 + 24 * Double(i) / Double(count - 1)
+            deployNext(at: V2(x, 38.5))
+        }
+    }
+
     // MARK: - Фабрики
 
     private func addUnit(_ stats: UnitStats, team: Team, pos: V2) {
@@ -275,6 +311,7 @@ public final class BattleSim {
 
     /// Один такт (0.1 игровой секунды).
     public func step() {
+        guard !awaitingDeployment else { return }
         guard !finished else { return }
         time += dt
         fireTowers()
@@ -287,6 +324,7 @@ public final class BattleSim {
     /// Прогнать бой до конца (для демо и тестов).
     @discardableResult
     public func runToEnd() -> BattleResult? {
+        deployRemaining()
         while !finished && time <= timeLimit + 5 {
             step()
         }
@@ -435,7 +473,7 @@ public final class BattleSim {
                 finish(victory: true)
                 return
             }
-            if !playerUnitAlive {
+            if !playerUnitAlive && deployQueue.isEmpty {
                 finish(victory: false)
                 return
             }
