@@ -1,3 +1,5 @@
+import Foundation
+
 /// Типы зданий деревни.
 public enum BuildingType: String, CaseIterable, Codable, Identifiable, Hashable {
     case home

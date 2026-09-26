@@ -1,3 +1,5 @@
+import Foundation
+
 /// Юниты: боевые коты игрока и враги (раки, псы, волки и прочие негодяи).
 public enum UnitID: String, CaseIterable, Codable, Identifiable, Hashable {
     // Армия игрока

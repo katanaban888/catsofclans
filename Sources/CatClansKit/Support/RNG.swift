@@ -34,7 +34,9 @@ public struct SeededRNG {
 
     /// Дробное в диапазоне a...b.
     public mutating func double(_ a: Double, _ b: Double) -> Double {
-        let unit = Double(next() >> 11) * (2.0 ** -53) // [0, 1)
+        // 2^-53 — точный обратный к 2^53. Оператора ** в stdlib Swift нет,
+        // поэтому пишем явную степень двойки через деление (поведение идентично).
+        let unit = Double(next() >> 11) * (1.0 / 9007199254740992.0) // [0, 1)
         return a + unit * (b - a)
     }
 
