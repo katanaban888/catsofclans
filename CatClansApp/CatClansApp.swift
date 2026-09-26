@@ -64,11 +64,8 @@ struct RootView: View {
         ) {
             OfflineSheet()
         }
-        .confirmDialog(
-            "Сбросить прогресс?",
-            isPresented: $store.showResetConfirm,
-            titleVisibility: .visible
-        ) {
+        .alert("Сбросить прогресс?", isPresented: $store.showResetConfirm) {
+            Button("Отмена", role: .cancel) {}
             Button("Стереть деревню", role: .destructive) {
                 store.resetGame()
             }
