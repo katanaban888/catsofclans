@@ -7,6 +7,7 @@ struct UnitSnap: Identifiable, Equatable {
     let id: Int
     let team: Team
     let emoji: String
+    let unit: UnitID
     let x: Double
     let y: Double
     let hp: Int
@@ -18,6 +19,8 @@ struct StructSnap: Identifiable, Equatable {
     let id: Int
     let team: Team
     let emoji: String
+    let type: BuildingType
+    let level: Int
     let x: Double
     let y: Double
     let hp: Int
@@ -86,6 +89,7 @@ final class GameStore: ObservableObject {
     @Published var showBuild = false
     @Published var showArmy = false
     @Published var showAttack = false
+    @Published var showSettings = false
     @Published var showResetConfirm = false
 
     private var sim: BattleSim?
@@ -165,6 +169,7 @@ final class GameStore: ObservableObject {
                 id: u.id,
                 team: u.team,
                 emoji: u.stats.id.emoji,
+                unit: u.stats.id,
                 x: u.pos.x,
                 y: u.pos.y,
                 hp: u.hp,
@@ -177,6 +182,8 @@ final class GameStore: ObservableObject {
                 id: st.id,
                 team: st.team,
                 emoji: st.emoji,
+                type: st.type,
+                level: 1,
                 x: st.pos.x,
                 y: st.pos.y,
                 hp: st.hp,

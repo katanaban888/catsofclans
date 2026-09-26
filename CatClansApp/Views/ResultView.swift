@@ -1,84 +1,48 @@
 import SwiftUI
 
+/// Полноэкранный итог боя.
 struct ResultView: View {
     @EnvironmentObject var store: GameStore
-    @Environment(\.dismiss) private var dismiss
     let payload: ResultPayload
 
     var body: some View {
-        NavigationView {
-            let r = payload.result
-            let isAttack = payload.mode == .attack
-            ScrollView {
-                VStack(spacing: 18) {
-                    Text(bannerText)
-                        .font(.largeTitle.bold())
-                    Text(payload.enemyName)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+        let r = payload.result
+        let isAttack = payload.mode == .attack
 
-                    HStack(spacing: 12) {
-                        ResultStat(icon: "⏱", label: "Время", value: fmtTime(r.duration))
-                        ResultStat(
-                            icon: "💥",
-                            label: "Стройки",
-                            value: "\(r.destroyedStructures)/\(r.totalStructures)"
-                        )
-                        ResultStat(icon: "⭐", label: "Опыт", value: "+\(r.xp)")
-                    }
+        ZStack {
+            Color.black.opacity(0.7).ignoresSafeArea()
+            VStack(spacing: 14) {
+                Text(bannerText)
+                    .font(.system(size: 34, weight: .heavy))
+                    .foregroundColor(r.victory ? .ccGood : .ccBad)
+                    .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 2)
+                Text(payload.enemyName)
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.8))
 
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(isAttack ? "Добыча" : "Награда")
-                            .font(.headline)
-                        let empty = r.loot == ResourceAmounts.zero
-                        if empty {
-                            Text("Пусто…")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        } else {
-                            ForEach(Resource.allCases) { res in
-                                if r.loot[res] > 0 {
-                                    HStack {
-                                        Text(res.emoji)
-                                        Text(res.ruName)
-                                        Spacer()
-                                        Text("+\(r.loot[res])")
-                                            .bold()
-                                    }
-                                    .font(.subheadline)
-                                }
-                            }
-                        }
-                    }
-                    .padding(12)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.ccCard))
-
-                    if !isAttack && r.coreDamageFrac > 0.01 {
-                        Text("Дом получил \(Int(r.coreDamageFrac * 100))% урона — он будет постепенно чиниться.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-
-                    Button(action: { dismiss() }) {
-                        Text("В деревню")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.ccAccent)
-                            )
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.top, 4)
+                HStack(spacing: 12) {
+                    ResultStat(icon: "⏱", label: "Время", value: fmtTime(r.duration))
+                    ResultStat(icon: "💥", label: "Стройки", value: "\(r.destroyedStructures)/\(r.totalStructures)")
+                    ResultStat(icon: "⭐", label: "Опыт", value: "+\(r.xp)")
                 }
-                .padding()
+
+                lootBox(isAttack: isAttack)
+
+                if !isAttack && r.coreDamageFrac > 0.01 {
+                    Text("Дом получил \(Int(r.coreDamageFrac * 100))% урона — он будет постепенно чиниться.")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                }
+
+                GameCapsuleButton(title: "В деревню", icon: "house.fill", color: .ccAccent) {
+                    store.result = nil
+                }
             }
-            .navigationTitle("Итог")
-            .navigationBarTitleDisplayMode(.inline)
+            .padding(24)
+            .frame(maxWidth: 520)
+            .background(WoodPanel(corner: 22))
+            .padding(24)
         }
     }
 
@@ -89,6 +53,37 @@ struct ResultView: View {
         }
         return isAttack ? "💔 Поражение" : "🐾 Грабители ушли"
     }
+
+    @ViewBuilder
+    private func lootBox(isAttack: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(isAttack ? "Добыча" : "Награда")
+                .font(.headline)
+                .foregroundColor(.white)
+            if payload.result.loot == ResourceAmounts.zero {
+                Text("Пусто…")
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.6))
+            } else {
+                ForEach(Resource.allCases) { res in
+                    if payload.result.loot[res] > 0 {
+                        HStack(spacing: 8) {
+                            ResourceIcon(resource: res, size: 20)
+                            Text(res.ruName).foregroundColor(.white.opacity(0.85))
+                            Spacer()
+                            Text("+\(payload.result.loot[res])")
+                                .bold()
+                                .foregroundColor(.ccGood)
+                        }
+                        .font(.subheadline)
+                    }
+                }
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 14).fill(Color.black.opacity(0.35)))
+    }
 }
 
 struct ResultStat: View {
@@ -98,16 +93,16 @@ struct ResultStat: View {
 
     var body: some View {
         VStack(spacing: 4) {
-            Text(icon)
-                .font(.title3)
+            Text(icon).font(.title3)
             Text(value)
                 .font(.subheadline.bold().monospacedDigit())
+                .foregroundColor(.white)
             Text(label)
                 .font(.caption2)
-                .foregroundColor(.secondary)
+                .foregroundColor(.white.opacity(0.6))
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color.ccCard))
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color.black.opacity(0.35)))
     }
 }

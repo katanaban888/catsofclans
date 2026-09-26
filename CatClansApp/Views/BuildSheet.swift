@@ -1,35 +1,56 @@
 import SwiftUI
 
+/// Игровое меню строительства (магазин).
 struct BuildSheet: View {
     @EnvironmentObject var store: GameStore
-    @Environment(\.dismiss) private var dismiss
+
+    private var buildable: [BuildingType] {
+        BuildingType.allCases.filter { $0 != .home }
+    }
 
     var body: some View {
-        NavigationView {
-            List {
-                Section {
-                    Text("Запасы: \(store.state.resources.display)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+        ZStack {
+            Color.black.opacity(0.5).ignoresSafeArea()
+                .onTapGesture { store.showBuild = false }
+
+            VStack(spacing: 10) {
+                HStack {
+                    PanelTitle(text: "🏗️ Магазин построек")
+                    Spacer()
+                    closeBtn
                 }
-                Section("Новые постройки") {
-                    ForEach(BuildingType.allCases.filter { $0 != .home }) { t in
-                        BuildRow(type: t)
+                .padding(.horizontal, 16)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(buildable) { type in
+                            BuildCard(type: type)
+                        }
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 6)
                 }
             }
-            .navigationTitle("Стройка")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Готово") { dismiss() }
-                }
-            }
+            .padding(.vertical, 12)
+            .frame(maxWidth: 760)
+            .background(WoodPanel(corner: 20))
+            .padding(.horizontal, 20)
         }
+    }
+
+    private var closeBtn: some View {
+        Button { store.showBuild = false } label: {
+            Image(systemName: "xmark.circle.fill")
+                .font(.title2)
+                .foregroundColor(.white.opacity(0.7))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Закрыть магазин")
     }
 }
 
-struct BuildRow: View {
+/// Карточка здания в магазине.
+struct BuildCard: View {
     @EnvironmentObject var store: GameStore
     let type: BuildingType
 
@@ -37,39 +58,41 @@ struct BuildRow: View {
         let def = BuildingTable.def(type)
         let cost = BuildingTable.buildCost(type)
         let locked = store.state.homeLevel < def.requiredHomeLevel
-        let canAfford = store.state.resources.canAfford(cost)
-        HStack(spacing: 12) {
-            Text(def.emoji)
-                .font(.title2)
-            VStack(alignment: .leading, spacing: 3) {
+        let affordable = store.state.resources.canAfford(cost)
+        let canBuild = !locked && affordable
+
+        Button {
+            store.build(type)
+        } label: {
+            VStack(spacing: 6) {
+                BuildingSpriteView(type: type, level: 1, size: 64)
+                    .opacity(locked ? 0.4 : 1)
                 Text(def.ruName)
-                    .font(.subheadline.bold())
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
                 if locked {
-                    Text("🔒 Нужен Дом котов \(def.requiredHomeLevel) ур.")
-                        .font(.caption)
+                    Label("Дом \(def.requiredHomeLevel) ур.", systemImage: "lock.fill")
+                        .font(.system(size: 10, weight: .bold))
                         .foregroundColor(.orange)
                 } else {
-                    Text(def.flavor)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(2)
-                    ResourceLine(amount: cost, affordable: canAfford)
+                    ResourceLine(amount: cost, affordable: affordable)
                 }
             }
-            Spacer()
-            if !locked {
-                Button(action: { store.build(type) }) {
-                    Text("Построить")
-                        .font(.caption.bold())
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(Capsule().fill(canAfford ? Color.ccGood : Color.gray.opacity(0.5)))
-                        .foregroundColor(.white)
-                }
-                .buttonStyle(.plain)
-                .disabled(!canAfford)
-            }
+            .padding(10)
+            .frame(width: 128)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(Color.white.opacity(canBuild ? 0.10 : 0.04))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(canBuild ? Color.ccGood.opacity(0.7) : Color.white.opacity(0.12), lineWidth: 2)
+                    )
+            )
         }
-        .padding(.vertical, 4)
+        .buttonStyle(.plain)
+        .disabled(!canBuild)
+        .accessibilityLabel("Построить \(def.ruName)")
     }
 }
